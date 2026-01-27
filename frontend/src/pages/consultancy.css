@@ -1,0 +1,68 @@
+.consultancy-page {
+    padding: 50px 30px;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f9f9f9;
+    line-height: 1.7;
+  }
+  
+  .consultancy-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  
+  .consultancy-header img {
+    width: 90px;
+    margin-bottom: 15px;
+  }
+  
+  .consultancy-header h1 {
+    font-size: 30px;
+    margin-bottom: 10px;
+  }
+  
+  .consultancy-header p {
+    color: gray;
+  }
+  
+  .consultancy-content {
+    max-width: 900px;
+    margin: auto;
+    font-size: 16px;
+    color: #333;
+  }
+  
+  .consultancy-content p {
+    margin-bottom: 18px;
+  }
+  
+  .consultancy-contact {
+    margin-top: 50px;
+    text-align: center;
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 5px 14px rgba(0, 0, 0, 0.08);
+  }
+  
+  .consultancy-contact h2 {
+    margin-bottom: 10px;
+  }
+  
+  .emails {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 15px;
+  }
+  
+  .emails a {
+    color: black;
+    font-weight: bold;
+    text-decoration: none;
+    font-size: 16px;
+  }
+  
+  .emails a:hover {
+    text-decoration: underline;
+  }
+  
