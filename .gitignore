@@ -1,8 +1,27 @@
+# node_modules
+# .env
+# build
+# dist
+# coverage
+# .DS_Store
+# backend/node_modules
+# frontend/node_modules
+
+# dependencies
 node_modules
-.env
-build
-dist
-coverage
-.DS_Store
 backend/node_modules
 frontend/node_modules
+
+# env files
+.env
+backend/.env
+frontend/.env
+
+# build folders
+dist
+build
+frontend/dist
+
+# misc
+.DS_Store
+coverage
