@@ -1,4 +1,4 @@
-.shelf {
+/* .shelf {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 20px;
@@ -18,7 +18,39 @@
     height: 250px;
     object-fit: cover;
     border-radius: 6px;
+  } */
+   
+   .navbar {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px 40px;
+}
+
+@media (max-width: 600px) {
+  .navbar {
+    flex-direction: column;
+    gap: 10px;
+    padding: 15px;
   }
+}
+
+   .shelf {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  padding: 40px;
+}
+
+.book-card {
+  text-align: center;
+}
+
+.book-card img {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
   
   .book-card h3 {
     font-size: 16px;

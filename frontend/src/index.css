@@ -1,4 +1,4 @@
-* {
+/* * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -9,4 +9,16 @@
     background: #0d2b52;
     color: white;
   }
-  
+   */
+
+   * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  width: 100%;
+  overflow-x: hidden;
+}
