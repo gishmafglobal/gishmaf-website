@@ -11,80 +11,43 @@
 //   );
 // }
 
-import book1 from "../assets/book1.jpg";
-import book2 from "../assets/book2.jpg";
+import "./books.css";
 
 export default function Books() {
   const books = [
     {
-      image: book1,
       title: "Escape from the Street",
+      image: "/images/book1.jpg",
       link: "https://selar.com/m/gabriel-m-gishmaf1",
     },
     {
-      image: book2,
       title: "A Lonely Life Survivor",
+      image: "/images/book2.jpg",
       link: "https://selar.com/1726n1",
     },
   ];
 
   return (
-    <div style={{ padding: "40px" }}>
-      <h1 style={{ textAlign: "center", marginBottom: "40px" }}>
-        Our Books
-      </h1>
+    <section className="books-page">
+      <h1 className="books-title">Our Books</h1>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-          gap: "30px",
-        }}
-      >
+      <div className="books-grid">
         {books.map((book, index) => (
           <a
             key={index}
             href={book.link}
             target="_blank"
             rel="noopener noreferrer"
-            style={{
-              textDecoration: "none",
-              color: "inherit",
-            }}
+            className="book-card"
           >
-            <div
-              style={{
-                border: "1px solid #ddd",
-                borderRadius: "10px",
-                padding: "15px",
-                textAlign: "center",
-                cursor: "pointer",
-                transition: "0.3s",
-              }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.transform = "translateY(-8px)")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.transform = "translateY(0)")
-              }
-            >
-              <img
-                src={book.image}
-                alt={book.title}
-                style={{
-                  width: "100%",
-                  height: "300px",
-                  objectFit: "cover",
-                  borderRadius: "8px",
-                  marginBottom: "15px",
-                }}
-              />
+            <img src={book.image} alt={book.title} />
+            <div className="book-info">
               <h3>{book.title}</h3>
               <p>Click to get this book</p>
             </div>
           </a>
         ))}
       </div>
-    </div>
+    </section>
   );
 }
