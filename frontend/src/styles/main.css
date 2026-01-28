@@ -74,38 +74,19 @@
   }
   
   /* CARDS */
-  /* .card-grid {
+  .card-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 25px;
     padding: 60px 80px;
-  } */
+  }
   
-  /* .card {
+  .card {
     border: 1px solid rgba(255,255,255,0.2);
     padding: 30px;
     border-radius: 10px;
     background: rgba(255,255,255,0.05);
-  } */
-
-  /* @media (max-width: 900px) {
-  .card-grid {
-    grid-template-columns: repeat(2, 1fr);
-    padding: 20px;
   }
-} */
-
-@media (max-width: 600px) {
-  .card-grid {
-    grid-template-columns: 1fr;
-    padding: 15px;
-  }
-
-  .card {
-    padding: 20px;
-  }
-}
-
   
   .card h3 {
     color: #f5b942;
