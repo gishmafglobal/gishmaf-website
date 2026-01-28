@@ -1,60 +1,4 @@
-// import { useEffect, useState } from "react";
-// import "./bookshelf.css";
 
-// export default function BookShelf() {
-//   const [books, setBooks] = useState([]);
-
-//   useEffect(() => {
-//     fetch("http://https://gishmaf-website.onrender.com/api/books")
-//       .then((res) => res.json())
-//       .then((data) => setBooks(data));
-//   }, []);
-
-//   return (
-//     <div className="shelf">
-//       {books.map((book, index) => (
-//         <div className="book-card" key={index}>
-//           <img src={book.cover} alt={book.title} />
-//           <h3>{book.title}</h3>
-//           <p>{book.author}</p>
-//           <a href={book.readLink} target="_blank" rel="noreferrer">
-//             <button>Read Book</button>
-//           </a>
-//         </div>
-//       ))}
-//     </div>
-//   );
-// }
-
-// import { useEffect, useState } from "react";
-// import { API_URL } from "../api";
-// import "./bookshelf.css";
-
-// export default function BookShelf() {
-//   const [books, setBooks] = useState([]);
-
-//   useEffect(() => {
-//     fetch(`${API_URL}/api/books`)
-//       .then((res) => res.json())
-//       .then((data) => setBooks(data))
-//       .catch((err) => console.log(err));
-//   }, []);
-
-//   return (
-//     <div className="shelf">
-//       {books.map((book, index) => (
-//         <div className="book-card" key={index}>
-//           <img src={book.cover} alt={book.title} />
-//           <h3>{book.title}</h3>
-//           <p>{book.author}</p>
-//           <a href={book.readLink} target="_blank" rel="noreferrer">
-//             <button>Read Book</button>
-//           </a>
-//         </div>
-//       ))}
-//     </div>
-//   );
-// }
 
 // import { useEffect, useState } from "react";
 // import "./bookshelf.css";
@@ -87,32 +31,42 @@
 //   );
 // }
 
-import { useEffect, useState } from "react";
-import { API_URL } from "../api";
-import "./bookshelf.css";
+import book1 from "../assets/book1.jpg";
+import book2 from "../assets/book2.jpg";
 
 export default function BookShelf() {
-  const [books, setBooks] = useState([]);
-
-  useEffect(() => {
-    fetch(`${API_URL}/api/books`)
-      .then((res) => res.json())
-      .then((data) => setBooks(data))
-      .catch((err) => console.log(err));
-  }, []);
+  const books = [
+    {
+      title: "Escape from the Street",
+      image: book1,
+      link: "https://selar.com/m/gabriel-m-gishmaf1",
+    },
+    {
+      title: "A Lonely Life Survivor",
+      image: book2,
+      link: "https://selar.com/1726n1",
+    },
+  ];
 
   return (
-    <div className="shelf">
-      {books.map((book, index) => (
-        <div className="book-card" key={index}>
-          <img src={book.cover} alt={book.title} />
-          <h3>{book.title}</h3>
-          <p>{book.author}</p>
-          <a href={book.readLink} target="_blank" rel="noreferrer">
-            <button>Read Book</button>
+    <section className="bookshelf">
+      <h2 className="bookshelf-title">Our Books</h2>
+
+      <div className="bookshelf-grid">
+        {books.map((book, index) => (
+          <a
+            key={index}
+            href={book.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="book-card"
+          >
+            <img src={book.image} alt={book.title} />
+            <h3>{book.title}</h3>
           </a>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+    </section>
   );
 }
+
