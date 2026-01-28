@@ -6,7 +6,7 @@
 //   const [blocks, setBlocks] = useState([]);
 
 //   useEffect(() => {
-//     fetch("http://localhost:5000/posts/about")
+//     fetch("http://https://gishmaf-website.onrender.com//posts/about")
 //       .then(res => res.json())
 //       .then(data => setBlocks(data));
 //   }, []);

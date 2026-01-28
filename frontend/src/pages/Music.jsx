@@ -1,29 +1,3 @@
-// import { useEffect, useState } from "react";
-
-// export default function Music() {
-//   const [posts, setPosts] = useState([]);
-
-//   useEffect(() => {
-//     fetch("http://localhost:5000/posts")
-//       .then(res => res.json())
-//       .then(data => {
-//         setPosts(data.filter(p => p.section === "music"));
-//       });
-//   }, []);
-
-//   return (
-//     <div style={{ padding: "80px" }}>
-//       <h1>Music</h1>
-//       {posts.map(p => (
-//         <div key={p._id} style={{ marginTop: "20px" }}>
-//           <h2>{p.title}</h2>
-//           <p>{p.content}</p>
-//         </div>
-//       ))}
-//     </div>
-//   );
-// }
-
 import { useEffect, useState } from "react";
 import logo from "../assets/logo.png";
 

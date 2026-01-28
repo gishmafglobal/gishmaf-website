@@ -1,28 +1,3 @@
-// import { useEffect, useState } from "react";
-
-// export default function Consultancy() {
-//   const [posts, setPosts] = useState([]);
-
-//   useEffect(() => {
-//     fetch("http://localhost:5000/posts")
-//       .then(res => res.json())
-//       .then(data => {
-//         setPosts(data.filter(p => p.section === "consultancy"));
-//       });
-//   }, []);
-
-//   return (
-//     <div style={{ padding: "80px" }}>
-//       <h1>Consultancy</h1>
-//       {posts.map(p => (
-//         <div key={p._id} style={{ marginTop: "20px" }}>
-//           <h2>{p.title}</h2>
-//           <p>{p.content}</p>
-//         </div>
-//       ))}
-//     </div>
-//   );
-// }
 
 import logo from "../assets/logo.png";
 import "./consultancy.css";

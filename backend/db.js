@@ -31,3 +31,12 @@ CREATE TABLE IF NOT EXISTS posts (
 )
 `);
 
+db.run(`
+CREATE TABLE IF NOT EXISTS admins (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username TEXT UNIQUE,
+  password TEXT
+)
+`);
+
+

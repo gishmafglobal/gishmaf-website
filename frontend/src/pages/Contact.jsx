@@ -5,7 +5,7 @@ export default function Contact() {
   const [posts, setPosts] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:5000/posts")
+    fetch("http://gishmaf-website.onrender.com/posts")
       .then(res => res.json())
       .then(data => {
         setPosts(data.filter(p => p.section === "contact"));
@@ -70,53 +70,3 @@ export default function Contact() {
   );
 }
 
-
-// import logo from "../assets/logo.png";
-// // import hero from "../assets/hero.jpg";
-// import "./contact.css";
-
-// export default function Contact() {
-//   return (
-//     <div className="contact-page">
-//       <div className="contact-header">
-//         <img src={logo} alt="Gishmaf Logo" className="logo" />
-//         <h1>Contact Gishmaf Global Concept</h1>
-//         <p>
-//           Connecting people, ideas, and opportunities across the world.
-//         </p>
-//       </div>
-
-//       <div className="contact-hero">
-//         <img src={contactImg} alt="Gishmaf Contact" />
-//       </div>
-
-//       <div className="contact-content">
-//         <p>
-//           Gishmaf Global Concept is a vision-driven platform committed to
-//           empowering individuals and organizations through knowledge,
-//           creativity, technology, and innovation. Our mission reaches beyond
-//           borders — serving people locally, nationally, and internationally.
-//         </p>
-
-//         <p>
-//           Whether you are looking to learn a skill, start a project, seek
-//           guidance, collaborate, or connect with our services, we are always
-//           open and ready to hear from you.
-//         </p>
-
-//         <p>
-//           We believe communication is the first step toward transformation and
-//           opportunity. Reach out to us from anywhere in the world and we will
-//           respond promptly.
-//         </p>
-//       </div>
-
-//       <div className="contact-email">
-//         <h2>Reach Us Directly</h2>
-//         <a href="mailto:info@gishmafglobal.com">
-//           info@gishmafglobal.com
-//         </a>
-//       </div>
-//     </div>
-//   );
-// }
