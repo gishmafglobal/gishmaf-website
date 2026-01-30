@@ -135,13 +135,21 @@ export default function CardGrid() {
         "Reach out to us for inquiries, collaborations, support, or feedback. We’re always open to hearing from you and working together.",
       link: "/contact",
     },
+    // {
+    //   icon: <FaComments />, // ✅ NEW CARD
+    //   title: "Community Comments",
+    //   description:
+    //     "Share your thoughts, feedback, and experiences with us. See what others are saying and join the public conversation.",
+    //   link: "/comments",
+    // },
     {
-      icon: <FaComments />, // ✅ NEW CARD
-      title: "Community Comments",
-      description:
-        "Share your thoughts, feedback, and experiences with us. See what others are saying and join the public conversation.",
-      link: "/comments",
-    },
+  icon: <FaComments />,
+  title: "Community Comments",
+  description:
+    "Read what others are saying and drop your own comment for the community.",
+  link: "/comments",
+},
+
   ];
 
   return (
