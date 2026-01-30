@@ -57,6 +57,10 @@ app.get("/", (req, res) => {
 // THIS IS THE IMPORTANT LINE
 app.use("/api/books", booksRoute);
 
+const commentsRoute = require("./routes/comments");
+app.use("/api/comments", commentsRoute);
+
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);

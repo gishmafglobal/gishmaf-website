@@ -4,6 +4,7 @@ import { Routes, Route } from "react-router-dom";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import Comments from "./pages/Comments";
 
 import Home from "./pages/Home";
 import About from "./pages/About";
@@ -31,6 +32,8 @@ export default function App() {
           <Route path="/consultancy" element={<Consultancy />} />
           <Route path="/music" element={<Music />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/comments" element={<Comments />} />
+
 
           {/* Future Admin */}
           {/* <Route path="/admin" element={<Admin />} /> */}
