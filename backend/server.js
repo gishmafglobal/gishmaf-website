@@ -32,6 +32,7 @@
 //   console.log(`🚀 Server running on http://localhost:${PORT}`);
 // });
 
+console.log("🔥🔥🔥 BACKEND SERVER.JS IS RUNNING 🔥🔥🔥");
 require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");

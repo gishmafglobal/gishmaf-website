@@ -301,7 +301,7 @@
 
 import { useEffect, useState } from "react";
 
-const API = "https://gishmaf-backend.onrender.com";
+const API = "https://gishmaf-website-1.onrender.com";
 
 export default function Comments() {
   const [comments, setComments] = useState([]);
