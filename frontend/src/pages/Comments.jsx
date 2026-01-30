@@ -310,7 +310,6 @@ export default function Comments() {
     email: "",
     message: "",
   });
-  const [reply, setReply] = useState("");
 
   const loadComments = async () => {
     try {
@@ -318,7 +317,7 @@ export default function Comments() {
       const data = await res.json();
       setComments(data);
     } catch (err) {
-      console.log("Load error:", err);
+      console.log(err);
     }
   };
 
@@ -334,32 +333,26 @@ export default function Comments() {
       return;
     }
 
-    try {
-      const res = await fetch(`${API}/api/comments`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
+    await fetch(`${API}/api/comments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form),
+    });
 
-      const data = await res.json();
-      console.log(data);
+    alert(
+      "✅ Thanks for your comment! If urgent, contact us by mail. Also check our Learning Hub if you can teach any skills. Cheers!"
+    );
 
-      setReply(
-        "✅ Thanks for your comment! If this is urgent, please reach us via mail. Also check our Learning Hub if you can teach any skills and contact us for further progression. Cheers!"
-      );
+    setForm({ name: "", email: "", message: "" });
 
-      setForm({ name: "", email: "", message: "" });
-      loadComments();
-    } catch (err) {
-      console.log("Post error:", err);
-    }
+    loadComments(); // reload after post
   };
 
   return (
     <div style={{ padding: "30px" }}>
       <h2>Community Comments</h2>
 
-      <form onSubmit={handleSubmit} style={{ marginBottom: "30px" }}>
+      <form onSubmit={handleSubmit}>
         <input
           placeholder="Your Name"
           value={form.name}
@@ -375,7 +368,7 @@ export default function Comments() {
         <br /><br />
 
         <textarea
-          placeholder="Write your comment..."
+          placeholder="Your Comment"
           value={form.message}
           onChange={(e) => setForm({ ...form, message: e.target.value })}
         />
@@ -384,17 +377,14 @@ export default function Comments() {
         <button type="submit">Post Comment</button>
       </form>
 
-      {reply && <p style={{ color: "green" }}>{reply}</p>}
-
       <hr />
 
-      <h3>What people are saying:</h3>
+      <h3>All Comments</h3>
 
       {comments.map((c, i) => (
         <div key={i} style={{ marginBottom: "20px" }}>
           <strong>{c.name}</strong> ({c.email})
           <p>{c.message}</p>
-          <small>{new Date(c.date).toLocaleString()}</small>
         </div>
       ))}
     </div>
