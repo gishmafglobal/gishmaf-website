@@ -50,7 +50,7 @@ export default function Comments() {
       });
 
       alert(
-        "✅ Thanks for your comment! If urgent, contact us by mail. Also check our Learning Hub if you can teach any skills. Cheers!"
+        "✅ Thanks for your comment! If urgent, contact us by mail. Also check our Learning Hub if you can teach any skills there,then reachout to us by mail for further progression. Cheers!"
       );
 
       setForm({ name: "", email: "", message: "" });
