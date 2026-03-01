@@ -12,14 +12,12 @@
 // }
 
 
-
 import { useState } from "react";
 import "./books.css";
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = "https://gishmaf-website-1.onrender.com"; // Your deployed backend
 
 export default function Books() {
-  // Book catalog with unique IDs
   const books = [
     {
       id: "book1",
@@ -33,7 +31,7 @@ export default function Books() {
     },
   ];
 
-  // Handle Stripe checkout for a specific book
+  // Stripe checkout for book
   const handleBookPurchase = async (bookId) => {
     try {
       const res = await fetch(`${API_URL}/api/books/create-book-session`, {
@@ -45,13 +43,13 @@ export default function Books() {
       const data = await res.json();
 
       if (data.url) {
-        // Redirect to Stripe Checkout
+        // Redirect to Stripe checkout
         window.location.href = data.url;
       } else {
-        alert("Failed to initiate purchase. Try again.");
+        alert("Failed to create checkout session. Try again.");
       }
     } catch (err) {
-      console.error("Error creating Stripe session:", err);
+      console.error("Error creating book session:", err);
       alert("Something went wrong. Try again later.");
     }
   };
@@ -59,7 +57,6 @@ export default function Books() {
   return (
     <section className="books-page">
       <h1 className="books-title">Our Books</h1>
-
       <div className="books-grid">
         {books.map((book) => (
           <div key={book.id} className="book-card">

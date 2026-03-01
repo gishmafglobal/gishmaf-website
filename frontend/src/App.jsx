@@ -73,9 +73,10 @@ export default function App() {
           <Route path="/comments" element={<Comments />} />
 
           {/* Premium Routes */}
+          <Route path="/books" element={<Books />} />
           <Route path="/premium" element={<Premium />} />
-          <Route path="/premium-success" element={<PremiumSuccess />} />
           <Route path="/book-success" element={<BookSuccess />} />
+          <Route path="/premium-success" element={<PremiumSuccess />} />
         </Routes>
       </main>
 
