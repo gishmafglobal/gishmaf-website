@@ -1,75 +1,40 @@
-// // const express = require("express");
-// // const axios = require("axios");
-// // const Book = require("../models/Book");
-
-// // const router = express.Router();
-
-// // // Fetch books from Open Library and save to DB
-// // router.get("/fetch", async (req, res) => {
-// //   try {
-// //     const response = await axios.get(
-// //       "https://openlibrary.org/search.json?q=programming"
-// //     );
-
-// //     const books = response.data.docs.slice(0, 20);
-
-// //     for (let b of books) {
-// //       const bookExists = await Book.findOne({ title: b.title });
-
-// //       if (!bookExists) {
-// //         await Book.create({
-// //           title: b.title,
-// //           author: b.author_name ? b.author_name[0] : "Unknown",
-// //           cover: b.cover_i
-// //             ? `https://covers.openlibrary.org/b/id/${b.cover_i}-L.jpg`
-// //             : "",
-// //           readLink: `https://openlibrary.org${b.key}`,
-// //         });
-// //       }
-// //     }
-
-// //     res.json({ message: "Books fetched and saved!" });
-// //   } catch (err) {
-// //     res.status(500).json(err);
-// //   }
-// // });
-
-// // // Get all books from DB
-// // router.get("/", async (req, res) => {
-// //   const books = await Book.find();
-// //   res.json(books);
-// // });
-
-// // module.exports = router;
-
-// const express = require("express");
-// const router = express.Router();
-
-// router.get("/", (req, res) => {
-//   res.json([
-//     {
-//       title: "Sample Book",
-//       author: "Gishmaf",
-//       cover: "https://via.placeholder.com/150",
-//       readLink: "https://example.com"
-//     }
-//   ]);
-// });
-
-// module.exports = router;
-
 const express = require("express");
 const router = express.Router();
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const Purchase = require("../models/Purchase"); // MongoDB schema
 
-router.get("/", (req, res) => {
-  res.json([
-    {
-      title: "Sample Book",
-      author: "Gishmaf",
-      cover: "https://via.placeholder.com/150",
-      readLink: "https://example.com"
-    }
-  ]);
+// Map of book IDs to Stripe price IDs
+const BOOK_PRICES = {
+  book1: process.env.STRIPE_PRICE_ID_BOOK1,
+  book2: process.env.STRIPE_PRICE_ID_BOOK2,
+};
+
+// Create Stripe checkout session for books
+router.post("/create-book-session", async (req, res) => {
+  try {
+    const { bookId } = req.body;
+    const priceId = BOOK_PRICES[bookId];
+
+    if (!priceId) return res.status(400).json({ error: "Invalid book ID" });
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          price: priceId,
+          quantity: 1,
+        },
+      ],
+      success_url: `${process.env.FRONTEND_URL}/book-success?bookId=${bookId}`,
+      cancel_url: `${process.env.FRONTEND_URL}/books`,
+    });
+
+    res.json({ url: session.url });
+  } catch (error) {
+    console.error("Stripe book error:", error);
+    res.status(500).json({ error: "Failed to create book session" });
+  }
 });
 
 module.exports = router;
