@@ -43,6 +43,7 @@ export default function Navbar() {
         <li><Link to="/consultancy">Consultancy</Link></li>
         <li><Link to="/music">Music</Link></li>
         <li><Link to="/contact">Contact</Link></li>
+        <li><a href="/premium">Premium</a></li>
         {/* <li><Link to="/admin">Admin</Link></li> */}
       </ul>
     </nav>

@@ -4,7 +4,6 @@
 
 // import Navbar from "./components/Navbar";
 // import Footer from "./components/Footer";
-// import Comments from "./pages/Comment";
 
 // import Home from "./pages/Home";
 // import About from "./pages/About";
@@ -13,7 +12,7 @@
 // import Consultancy from "./pages/Consultancy";
 // import Music from "./pages/Music";
 // import Contact from "./pages/Contact";
-// // import Admin from "./pages/Admin";
+// import Comments from "./pages/Comments";
 
 // export default function App() {
 //   return (
@@ -22,10 +21,8 @@
 
 //       <main style={{ minHeight: "80vh" }}>
 //         <Routes>
-//           {/* Home */}
 //           <Route path="/" element={<Home />} />
 
-//           {/* Main Pages */}
 //           <Route path="/about" element={<About />} />
 //           <Route path="/books" element={<Books />} />
 //           <Route path="/skills" element={<Skills />} />
@@ -33,10 +30,6 @@
 //           <Route path="/music" element={<Music />} />
 //           <Route path="/contact" element={<Contact />} />
 //           <Route path="/comments" element={<Comments />} />
-
-
-//           {/* Future Admin */}
-//           {/* <Route path="/admin" element={<Admin />} /> */}
 //         </Routes>
 //       </main>
 
@@ -44,6 +37,7 @@
 //     </div>
 //   );
 // }
+
 
 import { Routes, Route } from "react-router-dom";
 
@@ -59,6 +53,9 @@ import Music from "./pages/Music";
 import Contact from "./pages/Contact";
 import Comments from "./pages/Comments";
 
+// ✅ New Premium Page
+import Premium from "./pages/Premium";
+
 export default function App() {
   return (
     <div className="app-container">
@@ -67,7 +64,6 @@ export default function App() {
       <main style={{ minHeight: "80vh" }}>
         <Routes>
           <Route path="/" element={<Home />} />
-
           <Route path="/about" element={<About />} />
           <Route path="/books" element={<Books />} />
           <Route path="/skills" element={<Skills />} />
@@ -75,6 +71,10 @@ export default function App() {
           <Route path="/music" element={<Music />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/comments" element={<Comments />} />
+
+          {/* ✅ New route for premium videos */}
+          <Route path="/premium" element={<Premium />} />
+          <Route path="/books/success" element={<BookSuccess />} />
         </Routes>
       </main>
 
