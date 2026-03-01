@@ -76,8 +76,10 @@
 import React from "react";
 import PremiumCard from "../components/PremiumCard";
 
-const PREMIUM_SESSION_URL = "http://localhost:5000/api/premium/create-premium-session"; 
-// Replace with your production URL when deploying
+const PREMIUM_SESSION_URL =
+  process.env.NODE_ENV === "development"
+    ? "http://localhost:5000/api/premium/create-premium-session"
+    : "https://gishmaf-website-1.onrender.com/api/premium/create-premium-session";
 
 export default function Premium() {
   const handleSubscribe = async () => {
@@ -87,17 +89,20 @@ export default function Premium() {
         headers: { "Content-Type": "application/json" },
       });
 
+      if (!response.ok) {
+        throw new Error("Failed to create session");
+      }
+
       const data = await response.json();
 
       if (data.url) {
-        // Redirect user to Stripe Checkout
         window.location.href = data.url;
       } else {
-        alert("Failed to create checkout session. Try again.");
+        alert("Failed to create checkout session.");
       }
     } catch (error) {
-      console.error("Error creating premium session:", error);
-      alert("Something went wrong. Try again later.");
+      console.error("Premium error:", error);
+      alert("Unable to connect to payment server.");
     }
   };
 
@@ -105,8 +110,7 @@ export default function Premium() {
     <div style={{ padding: "20px" }}>
       <h2>Unlock Premium Movies</h2>
       <p>
-        Subscribe to access all premium content. Your subscription renews every
-        30 days.
+        Subscribe to access all premium content. Subscription renews every 30 days.
       </p>
 
       <PremiumCard onSubscribe={handleSubscribe} />
