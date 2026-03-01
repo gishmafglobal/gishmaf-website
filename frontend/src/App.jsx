@@ -52,9 +52,9 @@ import Consultancy from "./pages/Consultancy";
 import Music from "./pages/Music";
 import Contact from "./pages/Contact";
 import Comments from "./pages/Comments";
-
-// ✅ New Premium Page
 import Premium from "./pages/Premium";
+import BookSuccess from "./pages/BookSuccess";
+import PremiumSuccess from "./pages/PremiumSuccess";
 
 export default function App() {
   return (
@@ -72,9 +72,10 @@ export default function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/comments" element={<Comments />} />
 
-          {/* ✅ New route for premium videos */}
+          {/* Premium Routes */}
           <Route path="/premium" element={<Premium />} />
-          <Route path="/books/success" element={<BookSuccess />} />
+          <Route path="/premium-success" element={<PremiumSuccess />} />
+          <Route path="/book-success" element={<BookSuccess />} />
         </Routes>
       </main>
 
