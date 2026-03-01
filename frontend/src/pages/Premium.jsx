@@ -1,28 +1,39 @@
-const express = require("express");
-const router = express.Router();
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+// src/pages/Premium.jsx
+import React from "react";
+import PremiumCard from "../components/PremiumCard";
 
-// Premium subscription route
-router.post("/create-premium-session", async (req, res) => {
-  try {
-    const session = await stripe.checkout.sessions.create({
-      mode: "subscription",
-      payment_method_types: ["card"],
-      line_items: [
-        {
-          price: process.env.STRIPE_PRICE_ID_PREMIUM,
-          quantity: 1,
-        },
-      ],
-      success_url: `${process.env.FRONTEND_URL}/premium-success`,
-      cancel_url: `${process.env.FRONTEND_URL}/premium`,
-    });
+const PREMIUM_SESSION_URL = "https://gishmaf-website-1.onrender.com/api/premium/create-premium-session"; 
 
-    res.json({ url: session.url });
-  } catch (error) {
-    console.error("Stripe premium error:", error);
-    res.status(500).json({ error: "Failed to create premium session" });
-  }
-});
+export default function Premium() {
+  const handleSubscribe = async () => {
+    try {
+      const response = await fetch(PREMIUM_SESSION_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
 
-module.exports = router;
+      const data = await response.json();
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert("Failed to create checkout session. Try again.");
+      }
+    } catch (error) {
+      console.error("Error creating premium session:", error);
+      alert("Something went wrong. Try again later.");
+    }
+  };
+
+  return (
+    <div style={{ padding: "20px" }}>
+      <h2>Unlock Premium Movies</h2>
+      <p>
+        Subscribe to access all premium content. Your subscription renews every
+        30 days.
+      </p>
+
+      <PremiumCard onSubscribe={handleSubscribe} />
+    </div>
+  );
+}
