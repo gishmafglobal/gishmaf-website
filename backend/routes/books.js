@@ -66,7 +66,7 @@ router.post("/create-book-session", async (req, res) => {
             product_data: {
               name: "Premium Book"
             },
-            unit_amount: 1500, // $15
+            unit_amount: 700, // $7
           },
           quantity: 1,
         },
