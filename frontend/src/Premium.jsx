@@ -3,7 +3,7 @@ import React from "react";
 const Premium = () => {
 
   const handlePremium = async () => {
-    const res = await fetch("http://localhost:5000/api/premium/create-premium-session", {
+    const res = await fetch("https://gishmaf-website-1.onrender.com/api/premium/create-premium-session", {
       method: "POST",
     });
 
