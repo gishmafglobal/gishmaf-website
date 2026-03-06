@@ -1,25 +1,62 @@
+// import React from "react";
+
+// const Premium = () => {
+
+//   const handlePremium = async () => {
+//     const res = await fetch("https://gishmaf-website-1.onrender.com/api/premium/create-premium-session", {
+//       method: "POST",
+//     });
+
+//     const data = await res.json();
+//     window.location.href = data.url;
+//   };
+
+//   return (
+//     <div>
+//       <h1>Premium Movie Access</h1>
+
+//       <button onClick={handlePremium}>
+//         Subscribe Now
+//       </button>
+//     </div>
+//   );
+// };
+
+// export default Premium;
+
 import React from "react";
+import PremiumCard from "../components/PremiumCard";
 
-const Premium = () => {
+export default function Premium() {
 
-  const handlePremium = async () => {
-    const res = await fetch("https://gishmaf-website-1.onrender.com/api/premium/create-premium-session", {
-      method: "POST",
-    });
+  const handleSubscribe = async () => {
+    try {
+      const response = await fetch(
+        "https://gishmaf-website-1.onrender.com/api/premium/create-premium-session",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
 
-    const data = await res.json();
-    window.location.href = data.url;
+      const data = await response.json();
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert("Failed to create checkout session.");
+      }
+
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong.");
+    }
   };
 
   return (
-    <div>
-      <h1>Premium Movie Access</h1>
-
-      <button onClick={handlePremium}>
-        Subscribe Now
-      </button>
+    <div style={{ padding: "20px" }}>
+      <h2>Unlock Premium Movies</h2>
+      <PremiumCard onSubscribe={handleSubscribe} />
     </div>
   );
-};
-
-export default Premium;
+}
