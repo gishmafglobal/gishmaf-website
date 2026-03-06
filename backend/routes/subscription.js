@@ -14,7 +14,7 @@ router.post("/create-session", async (req, res) => {
       mode: "subscription",
       line_items: [
         {
-          price: "price_XXXXXXXX", // replace with Stripe Price ID for subscription
+          price: "prod_U3zZm2voQtGjMn", // replace with Stripe Price ID for subscription
           quantity: 1,
         },
       ],

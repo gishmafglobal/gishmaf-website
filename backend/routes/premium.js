@@ -16,7 +16,7 @@ router.post("/create-premium-session", async (req, res) => {
           quantity: 1,
         },
       ],
-      success_url: "http://localhost:5173/premium-success",
+      success_url: "https://gishmaf-website-1.onrender.com/premium-success",
       cancel_url: "http://localhost:5173/premium-cancel",
     });
 
