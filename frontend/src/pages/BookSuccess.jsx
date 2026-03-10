@@ -6,6 +6,7 @@ const API_URL = "https://gishmaf-website-1.onrender.com";
 export default function BookSuccess() {
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get("session_id");
+  const bookId = searchParams.get("bookId");
 
   const [loading, setLoading] = useState(true);
   const [bookUrl, setBookUrl] = useState(null);
@@ -14,19 +15,15 @@ export default function BookSuccess() {
   useEffect(() => {
     const verifyPayment = async () => {
       try {
-        if (!sessionId) {
-          setError("Missing session ID.");
+        if (!sessionId || !bookId) {
+          setError("Missing payment information.");
           setLoading(false);
           return;
         }
 
         const res = await fetch(
-          `${API_URL}/api/books/verify-book-session?session_id=${sessionId}`
+          `${API_URL}/api/books/verify-book-session?session_id=${sessionId}&bookId=${bookId}`
         );
-
-        if (!res.ok) {
-          throw new Error("Server error");
-        }
 
         const data = await res.json();
 
@@ -36,19 +33,17 @@ export default function BookSuccess() {
           setError("Payment not confirmed.");
         }
       } catch (err) {
-        console.error("Verification error:", err);
-        setError("Something went wrong verifying payment.");
+        console.error(err);
+        setError("Verification failed.");
       } finally {
         setLoading(false);
       }
     };
 
     verifyPayment();
-  }, [sessionId]);
+  }, [sessionId, bookId]);
 
-  if (loading) {
-    return <h2 style={{ textAlign: "center" }}>Verifying payment...</h2>;
-  }
+  if (loading) return <h2 style={{ textAlign: "center" }}>Verifying payment...</h2>;
 
   return (
     <div style={{ textAlign: "center", padding: "50px" }}>
@@ -57,13 +52,7 @@ export default function BookSuccess() {
       {bookUrl ? (
         <>
           <a href={bookUrl} download>
-            <button
-              style={{
-                padding: "12px 25px",
-                fontSize: "16px",
-                cursor: "pointer"
-              }}
-            >
+            <button style={{ padding: "12px 25px", cursor: "pointer" }}>
               Download Your Book
             </button>
           </a>
