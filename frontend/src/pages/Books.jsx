@@ -1,0 +1,82 @@
+import { useState } from "react";
+import "./books.css";
+
+const API_URL = "https://gishmaf-website-1.onrender.com";
+
+export default function Books() {
+  const [loading, setLoading] = useState(false);
+
+  const books = [
+    {
+      id: "book1",
+      title: "Escape from the Street",
+      image: "/images/book1.jpg",
+    },
+    {
+      id: "book2",
+      title: "A Lonely Life Survivor",
+      image: "/images/book2.jpg",
+    },
+  ];
+
+  const handleBookPurchase = async (bookId) => {
+    let email = localStorage.getItem("email");
+
+    if (!email) {
+      email = prompt("Enter your email (receipt will be sent):");
+      if (!email) return;
+      localStorage.setItem("email", email);
+    }
+
+    try {
+      setLoading(true);
+
+      const res = await fetch(`${API_URL}/api/books/create-book-session`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ bookId, email }),
+      });
+
+      const data = await res.json();
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert("Failed to start payment.");
+      }
+
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <section className="books-page">
+      <h1 className="books-title">Our Books</h1>
+
+      {loading && <p>Redirecting to payment...</p>}
+
+      <div className="books-grid">
+        {books.map((book) => (
+          <div key={book.id} className="book-card">
+            <img src={book.image} alt={book.title} />
+            <div className="book-info">
+              <h3>{book.title}</h3>
+
+              <button
+                className="buy-button"
+                onClick={() => handleBookPurchase(book.id)}
+              >
+                Buy Book
+              </button>
+
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
