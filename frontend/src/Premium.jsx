@@ -1,7 +1,6 @@
 import React from "react";
 
-function Premium() {
-
+const Premium = () => {
   const handleSubscribe = async () => {
     try {
       const response = await fetch(
@@ -24,7 +23,6 @@ function Premium() {
       } else {
         alert("Failed to create checkout session.");
       }
-
     } catch (error) {
       console.error(error);
       alert("Something went wrong.");
@@ -35,11 +33,9 @@ function Premium() {
     <div style={{ padding: "40px", textAlign: "center" }}>
       <h1>Premium Membership</h1>
       <p>Unlock exclusive premium content.</p>
-      <button onClick={handleSubscribe}>
-        Subscribe Now
-      </button>
+      <button onClick={handleSubscribe}>Subscribe Now</button>
     </div>
   );
-}
+};
 
 export default Premium;
