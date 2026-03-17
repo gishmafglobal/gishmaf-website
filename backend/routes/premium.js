@@ -1,96 +1,34 @@
-// const express = require("express");
-// const router = express.Router();
-
-// const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-
-// const PremiumUser = require("../models/PremiumUser");
-
-
-// // CREATE STRIPE CHECKOUT SESSION
-// router.post("/create-premium-session", async (req, res) => {
-//   try {
-
-//     const session = await stripe.checkout.sessions.create({
-
-//       payment_method_types: ["card"],
-
-//       mode: "subscription",
-
-//       line_items: [
-//         {
-//           price: process.env.STRIPE_PRICE_ID,
-//           quantity: 1
-//         }
-//       ],
-
-//       success_url:
-//         "https://gishmaf-website-2.onrender.com/premium-success",
-
-//       cancel_url:
-//         "https://gishmaf-website-2.onrender.com/premium"
-
-//     });
-
-//     res.json({ url: session.url });
-
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).json({ error: "Stripe error" });
-//   }
-// });
-
-
-
-// // CHECK IF USER IS PREMIUM
-// router.get("/check/:email", async (req, res) => {
-
-//   try {
-
-//     const user = await PremiumUser.findOne({
-//       email: req.params.email,
-//       status: "active"
-//     });
-
-//     if (user) {
-//       return res.json({ premium: true });
-//     }
-
-//     res.json({ premium: false });
-
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).json({ error: "Server error" });
-//   }
-
-// });
-
-// module.exports = router;
-
 const express = require("express");
 const router = express.Router();
-
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const PremiumUser = require("../models/PremiumUser");
 
-// ===============================
-// CREATE STRIPE CHECKOUT SESSION
-// ===============================
+// ======================================
+// CREATE PREMIUM SUBSCRIPTION SESSION
+// ======================================
 router.post("/create-premium-session", async (req, res) => {
   try {
-
     const { email } = req.body;
 
     if (!email) {
       return res.status(400).json({ error: "Email is required" });
     }
 
+    if (!process.env.STRIPE_SECRET_KEY) {
+      return res.status(500).json({ error: "Missing STRIPE_SECRET_KEY" });
+    }
+
     if (!process.env.STRIPE_PRICE_ID) {
       return res.status(500).json({ error: "Missing STRIPE_PRICE_ID" });
     }
 
+    if (!process.env.FRONTEND_URL) {
+      return res.status(500).json({ error: "Missing FRONTEND_URL" });
+    }
+
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
       mode: "subscription",
+      payment_method_types: ["card"],
 
       customer_email: email,
 
@@ -101,25 +39,21 @@ router.post("/create-premium-session", async (req, res) => {
         },
       ],
 
-      success_url:
-        "https://gishmaf-website-2.onrender.com/premium-success",
-      cancel_url:
-        "https://gishmaf-website-2.onrender.com/premium",
-
+      success_url: `${process.env.FRONTEND_URL}/premium-success`,
+      cancel_url: `${process.env.FRONTEND_URL}/premium`,
     });
 
-    res.json({ url: session.url });
+    return res.json({ url: session.url });
 
   } catch (error) {
-    console.error("🔥 STRIPE ERROR:", error.message);
-    res.status(500).json({ error: error.message });
+    console.error("🔥 STRIPE ERROR:", error);
+    return res.status(500).json({ error: error.message });
   }
 });
 
-
-// ===============================
-// CHECK PREMIUM USER
-// ===============================
+// ======================================
+// CHECK IF USER IS PREMIUM
+// ======================================
 router.get("/check/:email", async (req, res) => {
   try {
     const user = await PremiumUser.findOne({
@@ -127,11 +61,11 @@ router.get("/check/:email", async (req, res) => {
       status: "active",
     });
 
-    res.json({ premium: !!user });
+    return res.json({ premium: !!user });
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Server error" });
+    console.error("🔥 CHECK PREMIUM ERROR:", error);
+    return res.status(500).json({ error: "Server error" });
   }
 });
 
