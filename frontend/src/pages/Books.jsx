@@ -20,16 +20,20 @@ export default function Books() {
   ];
 
   const handleBookPurchase = async (bookId) => {
-    const email = prompt("Enter your email to receive receipt:");
+    let email = localStorage.getItem("email");
 
-    if (!email) return alert("Email is required.");
+    if (!email) {
+      email = prompt("Enter your email (receipt will be sent):");
+      if (!email) return;
+      localStorage.setItem("email", email);
+    }
 
     try {
       setLoading(true);
 
       const res = await fetch(`${API_URL}/api/books/create-book-session`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {"Content-Type": "application/json"},
         body: JSON.stringify({ bookId, email }),
       });
 
@@ -38,12 +42,13 @@ export default function Books() {
       if (data.url) {
         window.location.href = data.url;
       } else {
-        alert("Failed to create checkout session.");
-        setLoading(false);
+        alert("Failed to start payment.");
       }
+
     } catch (err) {
       console.error(err);
       alert("Something went wrong.");
+    } finally {
       setLoading(false);
     }
   };
@@ -60,12 +65,14 @@ export default function Books() {
             <img src={book.image} alt={book.title} />
             <div className="book-info">
               <h3>{book.title}</h3>
+
               <button
                 className="buy-button"
                 onClick={() => handleBookPurchase(book.id)}
               >
-                Buy / Read Book
+                Buy Book
               </button>
+
             </div>
           </div>
         ))}
