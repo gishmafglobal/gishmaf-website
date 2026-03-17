@@ -62,3 +62,6 @@ frontend/dist
 coverage
 >>>>>>> 4edd6e1f2de431ae3e4611ff4269d341202d0afc
 >>>>>>> 84ccf8c0213d3be52ea3aeb2da2bcde94bf78ff2
+.env
+frontend/.env
+backend/.env

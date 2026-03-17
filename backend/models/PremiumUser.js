@@ -1,50 +1,12 @@
-// const mongoose = require("mongoose");
-
-// const premiumUserSchema = new mongoose.Schema({
-//   email: {
-//     type: String,
-//     required: true
-//   },
-
-//   stripeCustomerId: String,
-
-//   subscriptionId: String,
-
-//   status: {
-//     type: String,
-//     default: "active"
-//   },
-
-//   createdAt: {
-//     type: Date,
-//     default: Date.now
-//   }
-// });
-
-// module.exports = mongoose.model("PremiumUser", premiumUserSchema);
 
 const mongoose = require("mongoose");
 
-const premiumUserSchema = new mongoose.Schema({
-  email: {
-    type: String,
-    required: true,
-  },
+const PremiumUserSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true },
+  status: { type: String, enum: ["active", "expired", "cancelled"], default: "active" },
+  stripeCustomerId: { type: String },
+  stripeSubscriptionId: { type: String },
+  expiresAt: { type: Date },
+}, { timestamps: true });
 
-  stripeCustomerId: String,
-  stripeSubscriptionId: String,
-
-  status: {
-    type: String,
-    default: "active",
-  },
-
-  expiresAt: Date, // ✅ NEW (30 days control)
-
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
-
-module.exports = mongoose.model("PremiumUser", premiumUserSchema);
+module.exports = mongoose.model("PremiumUser", PremiumUserSchema);

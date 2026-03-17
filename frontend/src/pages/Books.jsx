@@ -5,6 +5,7 @@ const API_URL = "https://gishmaf-website-1.onrender.com";
 
 export default function Books() {
   const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState(localStorage.getItem("email") || "");
 
   const books = [
     {
@@ -20,12 +21,14 @@ export default function Books() {
   ];
 
   const handleBookPurchase = async (bookId) => {
-    let email = localStorage.getItem("email");
+    let userEmail = email;
 
-    if (!email) {
-      email = prompt("Enter your email (receipt will be sent):");
-      if (!email) return;
-      localStorage.setItem("email", email);
+    // Prompt for email if not set
+    if (!userEmail) {
+      userEmail = prompt("Enter your email (receipt will be sent):");
+      if (!userEmail) return alert("Email is required for receipt.");
+      setEmail(userEmail);
+      localStorage.setItem("email", userEmail);
     }
 
     try {
@@ -33,21 +36,25 @@ export default function Books() {
 
       const res = await fetch(`${API_URL}/api/books/create-book-session`, {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ bookId, email }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookId, email: userEmail }),
       });
 
       const data = await res.json();
 
       if (data.url) {
+        // Redirect to Stripe checkout
         window.location.href = data.url;
+      } else if (data.error) {
+        alert(`Payment failed: ${data.error}`);
+        console.error("Stripe session error:", data.error);
       } else {
-        alert("Failed to start payment.");
+        alert("Failed to start payment. Please try again.");
       }
 
     } catch (err) {
-      console.error(err);
-      alert("Something went wrong.");
+      console.error("Purchase error:", err);
+      alert("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -57,7 +64,7 @@ export default function Books() {
     <section className="books-page">
       <h1 className="books-title">Our Books</h1>
 
-      {loading && <p>Redirecting to payment...</p>}
+      {loading && <p className="loading-msg">Redirecting to payment...</p>}
 
       <div className="books-grid">
         {books.map((book) => (
@@ -65,14 +72,13 @@ export default function Books() {
             <img src={book.image} alt={book.title} />
             <div className="book-info">
               <h3>{book.title}</h3>
-
               <button
                 className="buy-button"
                 onClick={() => handleBookPurchase(book.id)}
+                disabled={loading}
               >
-                Buy Book
+                {loading ? "Processing..." : "Buy Book"}
               </button>
-
             </div>
           </div>
         ))}
