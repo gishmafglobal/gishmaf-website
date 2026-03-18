@@ -35,7 +35,7 @@ export default function App() {
           <Route path="/music" element={<Music />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/comments" element={<Comments />} />
-          {/* <Route path="/privacy" element={<Privacy />} /> */}
+          <Route path="/privacy" element={<Privacy />} />
 
           {/* Payment Routes */}
           <Route path="/premium" element={<Premium />} />
