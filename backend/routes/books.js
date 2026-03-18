@@ -19,12 +19,12 @@ if (!process.env.FRONTEND_URL) {
 const BOOKS = {
   book1: {
     title: "Escape from the Street",
-    price: 500, // $5.00 (Stripe uses cents)
+    price: 400, // $4.00 (Stripe uses cents)
     pdf: "EFTS BOOK.pdf",
   },
   book2: {
     title: "A Lonely Life Survivor",
-    price: 700, // $7.00
+    price: 420, // $4.20
     pdf: "Lonely Suvivor.pdf",
   },
 };
