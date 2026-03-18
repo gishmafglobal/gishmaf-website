@@ -1,70 +1,52 @@
 import { useState } from "react";
 import "./books.css";
 
-const API_URL = "https://gishmaf-website-1.onrender.com";
+const API_URL = process.env.REACT_APP_API_URL || "https://gishmaf-website-1.onrender.com";
 
 export default function Books() {
-  const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState(localStorage.getItem("email") || "");
+  const [loadingBook, setLoadingBook] = useState(null); // store bookId being processed
 
   const books = [
-    {
-      id: "book1",
-      title: "Escape from the Street",
-      image: "/images/book1.jpg",
-    },
-    {
-      id: "book2",
-      title: "A Lonely Life Survivor",
-      image: "/images/book2.jpg",
-    },
+    { id: "book1", title: "Escape from the Street", image: "/images/book1.jpg" },
+    { id: "book2", title: "A Lonely Life Survivor", image: "/images/book2.jpg" },
   ];
 
   const handleBookPurchase = async (bookId) => {
-    let userEmail = email;
-
-    // Prompt for email if not set
-    if (!userEmail) {
-      userEmail = prompt("Enter your email (receipt will be sent):");
-      if (!userEmail) return alert("Email is required for receipt.");
-      setEmail(userEmail);
-      localStorage.setItem("email", userEmail);
+    let email = localStorage.getItem("email");
+    if (!email) {
+      email = prompt("Enter your email (receipt will be sent):");
+      if (!email) return;
+      localStorage.setItem("email", email);
     }
 
     try {
-      setLoading(true);
+      setLoadingBook(bookId); // mark this book as loading
 
       const res = await fetch(`${API_URL}/api/books/create-book-session`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bookId, email: userEmail }),
+        body: JSON.stringify({ bookId, email }),
       });
 
       const data = await res.json();
 
       if (data.url) {
-        // Redirect to Stripe checkout
+        // ✅ redirect to Stripe checkout
         window.location.href = data.url;
-      } else if (data.error) {
-        alert(`Payment failed: ${data.error}`);
-        console.error("Stripe session error:", data.error);
       } else {
-        alert("Failed to start payment. Please try again.");
+        alert("Failed to start payment. Try again.");
       }
-
     } catch (err) {
-      console.error("Purchase error:", err);
-      alert("Something went wrong. Please try again.");
+      console.error(err);
+      alert("Something went wrong. Try again.");
     } finally {
-      setLoading(false);
+      setLoadingBook(null); // reset loading state
     }
   };
 
   return (
     <section className="books-page">
       <h1 className="books-title">Our Books</h1>
-
-      {loading && <p className="loading-msg">Redirecting to payment...</p>}
 
       <div className="books-grid">
         {books.map((book) => (
@@ -75,9 +57,9 @@ export default function Books() {
               <button
                 className="buy-button"
                 onClick={() => handleBookPurchase(book.id)}
-                disabled={loading}
+                disabled={loadingBook !== null} // disable other buttons while processing
               >
-                {loading ? "Processing..." : "Buy Book"}
+                {loadingBook === book.id ? "Redirecting..." : "Buy Book"}
               </button>
             </div>
           </div>
