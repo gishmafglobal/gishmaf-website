@@ -4,7 +4,7 @@ import "./books.css";
 const API_URL = process.env.REACT_APP_API_URL || "https://gishmaf-website-1.onrender.com";
 
 export default function Books() {
-  const [loadingBook, setLoadingBook] = useState(null); // store bookId being processed
+  const [loadingBook, setLoadingBook] = useState(null);
 
   const books = [
     { id: "book1", title: "Escape from the Street", image: "/images/book1.jpg" },
@@ -20,7 +20,7 @@ export default function Books() {
     }
 
     try {
-      setLoadingBook(bookId); // mark this book as loading
+      setLoadingBook(bookId);
 
       const res = await fetch(`${API_URL}/api/books/create-book-session`, {
         method: "POST",
@@ -31,23 +31,21 @@ export default function Books() {
       const data = await res.json();
 
       if (data.url) {
-        // ✅ redirect to Stripe checkout
         window.location.href = data.url;
       } else {
-        alert("Failed to start payment. Try again.");
+        alert(data.error || "Failed to start payment.");
       }
     } catch (err) {
       console.error(err);
-      alert("Something went wrong. Try again.");
+      alert("Something went wrong.");
     } finally {
-      setLoadingBook(null); // reset loading state
+      setLoadingBook(null);
     }
   };
 
   return (
     <section className="books-page">
       <h1 className="books-title">Our Books</h1>
-
       <div className="books-grid">
         {books.map((book) => (
           <div key={book.id} className="book-card">
@@ -57,9 +55,9 @@ export default function Books() {
               <button
                 className="buy-button"
                 onClick={() => handleBookPurchase(book.id)}
-                disabled={loadingBook !== null} // disable other buttons while processing
+                disabled={loadingBook === book.id}
               >
-                {loadingBook === book.id ? "Redirecting..." : "Buy Book"}
+                {loadingBook === book.id ? "Processing..." : "Buy Book"}
               </button>
             </div>
           </div>
