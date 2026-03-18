@@ -1,4 +1,3 @@
-// frontend/src/pages/Premium.jsx
 import { useEffect, useState } from "react";
 import PremiumCard from "../components/PremiumCard";
 
@@ -13,18 +12,22 @@ export default function Premium() {
   // Check premium status
   useEffect(() => {
     if (!email) return;
+
     fetch(`${API_URL}/api/premium/check/${email}`)
       .then((res) => res.json())
-      .then((data) => setIsPremium(data.premium))
-      .catch(console.error);
+      .then((data) => {
+        console.log("Premium status:", data);
+        setIsPremium(data.premium);
+      })
+      .catch((err) => console.error("Check error:", err));
   }, [email]);
 
-  // Handle Subscribe
+  // Subscribe handler
   const handleSubscribe = async () => {
     let userEmail = email;
 
     if (!userEmail) {
-      userEmail = prompt("Enter your email (receipt will be sent):");
+      userEmail = prompt("Enter your email:");
       if (!userEmail) return;
       localStorage.setItem("email", userEmail);
     }
@@ -34,20 +37,25 @@ export default function Premium() {
 
       const res = await fetch(`${API_URL}/api/premium/create-premium-session`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ email: userEmail }),
       });
 
       const data = await res.json();
 
-      if (data.url) {
+      console.log("🔥 BACKEND RESPONSE:", data);
+
+      if (res.ok && data.url) {
         window.location.href = data.url;
       } else {
-        alert("Failed to start premium session. Try again.");
+        alert(data.error || "Failed to start premium session.");
       }
+
     } catch (err) {
-      console.error(err);
-      alert("Something went wrong. Try again.");
+      console.error("❌ FRONTEND ERROR:", err);
+      alert("Network error. Try again.");
     } finally {
       setLoading(false);
     }
@@ -60,7 +68,7 @@ export default function Premium() {
       {loading && <p>Redirecting to payment...</p>}
 
       {isPremium ? (
-        <h2>✅ You have access to premium videos</h2>
+        <h2>✅ You have access to premium content</h2>
       ) : (
         <PremiumCard onSubscribe={handleSubscribe} />
       )}
