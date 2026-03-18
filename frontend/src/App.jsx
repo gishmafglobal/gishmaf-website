@@ -1,4 +1,5 @@
 import { Routes, Route } from "react-router-dom";
+import Privacy from "./pages/Privacy";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -37,6 +38,7 @@ export default function App() {
           <Route path="/music" element={<Music />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/comments" element={<Comments />} />
+          <Route path="/privacy" element={<Privacy />} />
 
           {/* ========================= */}
           {/* PAYMENT SUCCESS ROUTES   */}
