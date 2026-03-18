@@ -33,7 +33,7 @@ function Privacy() {
         and web beacons to collect information to provide personalized ads.
       </p>
       <p>
-        Users in the UK, EEA, and Switzerland will be asked for consent before
+        Users in the USA, UK, EEA, and Switzerland will be asked for consent before
         personalized ads are shown.
       </p>
 

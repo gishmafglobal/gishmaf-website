@@ -1,5 +1,3 @@
-
-
 import { Link } from "react-router-dom";
 import logo from "../assets/logo.png";
 
@@ -7,8 +5,10 @@ export default function Navbar() {
   return (
     <nav className="navbar">
       <div className="nav-left">
-        <img src={logo} alt="logo" />
-        <h1>GISHMAF <span>Global Concept</span></h1>
+        {logo && <img src={logo} alt="Gishmaf logo" />}
+        <h1>
+          GISHMAF <span>Global Concept</span>
+        </h1>
       </div>
 
       <ul className="nav-links">
@@ -19,9 +19,8 @@ export default function Navbar() {
         <li><Link to="/consultancy">Consultancy</Link></li>
         <li><Link to="/music">Music</Link></li>
         <li><Link to="/contact">Contact</Link></li>
-        <li><a href="/premium">Premium</a></li>
-        <li><Link to="/privacy">Privacy Policy</Link></li>
-        {/* <li><Link to="/admin">Admin</Link></li> */}
+        <li><Link to="/premium">Premium</Link></li>
+        {/* <li><Link to="/privacy">Privacy Policy</Link></li> */}
       </ul>
     </nav>
   );

@@ -1,5 +1,4 @@
 import { Routes, Route } from "react-router-dom";
-import Privacy from "./pages/Privacy";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -13,6 +12,7 @@ import Consultancy from "./pages/Consultancy";
 import Music from "./pages/Music";
 import Contact from "./pages/Contact";
 import Comments from "./pages/Comments";
+import Privacy from "./pages/Privacy";
 
 // Payment Pages
 import Premium from "./pages/Premium";
@@ -21,15 +21,12 @@ import PremiumSuccess from "./pages/PremiumSuccess";
 
 export default function App() {
   return (
-    <div className="app-container">
+    <>
       <Navbar />
 
-      <main style={{ minHeight: "80vh" }}>
+      <div style={{ minHeight: "80vh" }}>
         <Routes>
-
-          {/* ========================= */}
-          {/* MAIN WEBSITE ROUTES      */}
-          {/* ========================= */}
+          {/* Main Routes */}
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/books" element={<Books />} />
@@ -38,24 +35,19 @@ export default function App() {
           <Route path="/music" element={<Music />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/comments" element={<Comments />} />
-          <Route path="/privacy" element={<Privacy />} />
+          {/* <Route path="/privacy" element={<Privacy />} /> */}
 
-          {/* ========================= */}
-          {/* PAYMENT SUCCESS ROUTES   */}
-          {/* ========================= */}
+          {/* Payment Routes */}
+          <Route path="/premium" element={<Premium />} />
           <Route path="/book-success" element={<BookSuccess />} />
           <Route path="/premium-success" element={<PremiumSuccess />} />
-          <Route path="/premium" element={<Premium />} />
 
-          {/* ========================= */}
-          {/* FALLBACK ROUTE           */}
-          {/* ========================= */}
+          {/* Fallback */}
           <Route path="*" element={<Home />} />
-
         </Routes>
-      </main>
+      </div>
 
       <Footer />
-    </div>
+    </>
   );
 }
