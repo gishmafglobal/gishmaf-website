@@ -1,33 +1,37 @@
+// frontend/src/pages/Premium.jsx
 import { useEffect, useState } from "react";
 import PremiumCard from "../components/PremiumCard";
 
-const API_URL = "https://gishmaf-website-1.onrender.com"; // make sure this is your deployed backend
+const API_URL = "https://gishmaf-website-1.onrender.com";
 
 export default function Premium() {
   const [isPremium, setIsPremium] = useState(false);
   const [loading, setLoading] = useState(false);
+
   const email = localStorage.getItem("email");
 
+  // Check premium status
   useEffect(() => {
     if (!email) return;
-
     fetch(`${API_URL}/api/premium/check/${email}`)
       .then((res) => res.json())
       .then((data) => setIsPremium(data.premium))
-      .catch((err) => console.error("Check premium error:", err));
+      .catch(console.error);
   }, [email]);
 
+  // Handle Subscribe
   const handleSubscribe = async () => {
     let userEmail = email;
 
     if (!userEmail) {
-      userEmail = prompt("Enter your email to get receipt:");
+      userEmail = prompt("Enter your email (receipt will be sent):");
       if (!userEmail) return;
       localStorage.setItem("email", userEmail);
     }
 
     try {
       setLoading(true);
+
       const res = await fetch(`${API_URL}/api/premium/create-premium-session`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -37,14 +41,13 @@ export default function Premium() {
       const data = await res.json();
 
       if (data.url) {
-        window.location.href = data.url; // redirect to Stripe Checkout
+        window.location.href = data.url;
       } else {
         alert("Failed to start premium session. Try again.");
-        console.error("Premium session error:", data.error);
       }
     } catch (err) {
       console.error(err);
-      alert("Something went wrong. Check console for details.");
+      alert("Something went wrong. Try again.");
     } finally {
       setLoading(false);
     }
