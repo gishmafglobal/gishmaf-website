@@ -1,6 +1,4 @@
 // frontend/src/components/PremiumCard.jsx
-
-// frontend/src/components/PremiumCard.jsx
 import React from "react";
 
 export default function PremiumCard({ onSubscribe }) {
