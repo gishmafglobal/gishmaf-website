@@ -3,6 +3,8 @@ import { Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 
+import Terms from "./pages/Terms";
+
 // Main Pages
 import Home from "./pages/Home";
 import About from "./pages/About";
@@ -36,6 +38,7 @@ export default function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/comments" element={<Comments />} />
           <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
 
           {/* Payment Routes */}
           <Route path="/premium" element={<Premium />} />
