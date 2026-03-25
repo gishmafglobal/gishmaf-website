@@ -1,30 +1,11 @@
-// const mongoose = require("mongoose");
-
-// const reviewSchema = new mongoose.Schema({
-//   bookId: String,
-//   rating: Number,
-//   comment: String,
-//   createdAt: {
-//     type: Date,
-//     default: Date.now,
-//   },
-// });
-
-// module.exports = mongoose.model("Review", reviewSchema);
-
-
 const mongoose = require("mongoose");
 
-const reviewSchema = new mongoose.Schema({
-  email: String, // ✅ NEW
+const ReviewSchema = new mongoose.Schema({
+  email: String,
   bookId: String,
   rating: Number,
   comment: String,
-
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
+  createdAt: { type: Date, default: Date.now },
 });
 
-module.exports = mongoose.model("Review", reviewSchema);
+module.exports = mongoose.model("Review", ReviewSchema);

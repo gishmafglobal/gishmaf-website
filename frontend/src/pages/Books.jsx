@@ -1,20 +1,65 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./books.css";
 
-const API_URL = process.env.REACT_APP_API_URL || "https://gishmaf-website-1.onrender.com";
+const API_URL =
+  process.env.REACT_APP_API_URL ||
+  "https://gishmaf-website-1.onrender.com";
 
 export default function Books() {
   const [loadingBook, setLoadingBook] = useState(null);
+  const [ratings, setRatings] = useState({});
 
   const books = [
     { id: "book1", title: "Escape from the Street", image: "/images/book1.jpg" },
     { id: "book2", title: "A Lonely Life Survivor", image: "/images/book2.jpg" },
   ];
 
+  // ===============================
+  // FETCH RATINGS FOR EACH BOOK
+  // ===============================
+  useEffect(() => {
+    const fetchRatings = async () => {
+      try {
+        const updatedRatings = {};
+
+        for (const book of books) {
+          const res = await fetch(`${API_URL}/api/reviews/${book.id}`);
+          const reviews = await res.json();
+
+          if (reviews.length > 0) {
+            const avg =
+              reviews.reduce((acc, r) => acc + r.rating, 0) /
+              reviews.length;
+
+            updatedRatings[book.id] = {
+              average: avg.toFixed(1),
+              count: reviews.length,
+            };
+          } else {
+            updatedRatings[book.id] = {
+              average: "0.0",
+              count: 0,
+            };
+          }
+        }
+
+        setRatings(updatedRatings);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchRatings();
+  }, []);
+
+  // ===============================
+  // HANDLE PURCHASE
+  // ===============================
   const handleBookPurchase = async (bookId) => {
     let email = localStorage.getItem("email");
+
     if (!email) {
-      email = prompt("Enter your email (receipt will be sent):");
+      email = prompt("Enter your email:");
       if (!email) return;
       localStorage.setItem("email", email);
     }
@@ -33,10 +78,9 @@ export default function Books() {
       if (data.url) {
         window.location.href = data.url;
       } else {
-        alert(data.error || "Failed to start payment.");
+        alert(data.error || "Payment failed");
       }
     } catch (err) {
-      console.error(err);
       alert("Something went wrong.");
     } finally {
       setLoadingBook(null);
@@ -46,12 +90,21 @@ export default function Books() {
   return (
     <section className="books-page">
       <h1 className="books-title">Our Books</h1>
+
       <div className="books-grid">
         {books.map((book) => (
           <div key={book.id} className="book-card">
             <img src={book.image} alt={book.title} />
+
             <div className="book-info">
               <h3>{book.title}</h3>
+
+              {/* ⭐ DISPLAY RATING */}
+              <p>
+                ⭐ {ratings[book.id]?.average || "0.0"} (
+                {ratings[book.id]?.count || 0} reviews)
+              </p>
+
               <button
                 className="buy-button"
                 onClick={() => handleBookPurchase(book.id)}

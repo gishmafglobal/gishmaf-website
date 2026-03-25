@@ -1,74 +1,3 @@
-// import { useEffect, useState } from "react";
-// import { useSearchParams } from "react-router-dom";
-
-// const API_URL = "https://gishmaf-website-1.onrender.com";
-
-// export default function BookSuccess() {
-//   const [searchParams] = useSearchParams();
-//   const sessionId = searchParams.get("session_id");
-//   const bookId = searchParams.get("bookId");
-
-//   const [loading, setLoading] = useState(true);
-//   const [bookUrl, setBookUrl] = useState(null);
-//   const [error, setError] = useState(null);
-
-//   useEffect(() => {
-//     const verifyPayment = async () => {
-//       try {
-//         if (!sessionId || !bookId) {
-//           setError("Missing payment information.");
-//           setLoading(false);
-//           return;
-//         }
-
-//         const res = await fetch(
-//           `${API_URL}/api/books/verify-book-session?session_id=${sessionId}&bookId=${bookId}`
-//         );
-
-//         const data = await res.json();
-
-//         if (data.success && data.bookUrl) {
-//           setBookUrl(data.bookUrl);
-//         } else {
-//           setError("Payment not confirmed.");
-//         }
-//       } catch (err) {
-//         console.error(err);
-//         setError("Verification failed.");
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     verifyPayment();
-//   }, [sessionId, bookId]);
-
-//   if (loading) return <h2 style={{ textAlign: "center" }}>Verifying payment...</h2>;
-
-//   return (
-//     <div style={{ textAlign: "center", padding: "50px" }}>
-//       <h1>Purchase Successful 🎉</h1>
-
-//       {bookUrl ? (
-//         <>
-//           <a href={bookUrl} download>
-//             <button style={{ padding: "12px 25px", cursor: "pointer" }}>
-//               Download Your Book
-//             </button>
-//           </a>
-
-//           <h3 style={{ marginTop: "30px" }}>
-//             Please rate and review this book ⭐⭐⭐⭐⭐
-//           </h3>
-//         </>
-//       ) : (
-//         <h3 style={{ color: "red" }}>{error}</h3>
-//       )}
-//     </div>
-//   );
-// }
-
-
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
@@ -77,9 +6,10 @@ const API_URL = "https://gishmaf-website-1.onrender.com";
 export default function BookSuccess() {
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get("session_id");
-  const bookId = searchParams.get("bookId");
 
   const [bookUrl, setBookUrl] = useState(null);
+  const [bookId, setBookId] = useState(null);
+  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [rating, setRating] = useState(5);
@@ -87,17 +17,21 @@ export default function BookSuccess() {
 
   const email = localStorage.getItem("email");
 
+  // ===============================
+  // VERIFY PAYMENT
+  // ===============================
   useEffect(() => {
     const verify = async () => {
       try {
         const res = await fetch(
-          `${API_URL}/api/books/verify-book-session?session_id=${sessionId}&bookId=${bookId}`
+          `${API_URL}/api/books/verify-book-session?session_id=${sessionId}`
         );
 
         const data = await res.json();
 
         if (data.success) {
           setBookUrl(data.bookUrl);
+          setBookId(data.bookId);
         }
       } catch (err) {
         console.error(err);
@@ -107,69 +41,109 @@ export default function BookSuccess() {
     };
 
     verify();
-  }, [sessionId, bookId]);
+  }, [sessionId]);
+
+  // ===============================
+  // FETCH REVIEWS (AUTO REFRESH)
+  // ===============================
+  useEffect(() => {
+    if (!bookId) return;
+
+    const fetchReviews = async () => {
+      const res = await fetch(`${API_URL}/api/reviews/${bookId}`);
+      const data = await res.json();
+      setReviews(data);
+    };
+
+    fetchReviews();
+    const interval = setInterval(fetchReviews, 5000);
+
+    return () => clearInterval(interval);
+  }, [bookId]);
 
   const handleReview = async () => {
     try {
       await fetch(`${API_URL}/api/reviews`, {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email,
           bookId,
-          rating,
+          rating: Number(rating),
           comment,
         }),
       });
 
+      setComment("");
       alert("Review submitted!");
     } catch (err) {
-      console.error(err);
       alert("Failed to submit review");
     }
   };
 
+  const average =
+    reviews.length > 0
+      ? (
+          reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length
+        ).toFixed(1)
+      : "0.0";
+
   if (loading) return <h2>Verifying payment...</h2>;
+  if (!bookUrl) return <h2>Payment not verified.</h2>;
 
   return (
     <div style={{ textAlign: "center", padding: "50px" }}>
       <h1>🎉 Purchase Successful</h1>
 
-      {bookUrl && (
-        <>
-          <a href={bookUrl} target="_blank" rel="noreferrer">
-            <button>📥 Download Book</button>
-          </a>
+      <a href={bookUrl} target="_blank" rel="noreferrer">
+        <button>📥 Download Book</button>
+      </a>
 
-          {/* REVIEW SECTION */}
-          <div style={{ marginTop: "40px" }}>
-            <h3>Leave a Review</h3>
+      {/* ⭐ Average Display */}
+      <h3 style={{ marginTop: "30px" }}>
+        ⭐ {average} ({reviews.length} reviews)
+      </h3>
 
-            <select
-              value={rating}
-              onChange={(e) => setRating(e.target.value)}
-            >
-              <option value="5">⭐⭐⭐⭐⭐</option>
-              <option value="4">⭐⭐⭐⭐</option>
-              <option value="3">⭐⭐⭐</option>
-              <option value="2">⭐⭐</option>
-              <option value="1">⭐</option>
-            </select>
+      {/* ⭐ Review Form */}
+      <div style={{ marginTop: "20px" }}>
+        <select value={rating} onChange={(e) => setRating(e.target.value)}>
+          <option value="5">⭐⭐⭐⭐⭐</option>
+          <option value="4">⭐⭐⭐⭐</option>
+          <option value="3">⭐⭐⭐</option>
+          <option value="2">⭐⭐</option>
+          <option value="1">⭐</option>
+        </select>
 
-            <br /><br />
+        <br /><br />
 
-            <textarea
-              placeholder="Write your review..."
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-            />
+        <textarea
+          placeholder="Write your review..."
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+        />
 
-            <br /><br />
+        <br /><br />
 
-            <button onClick={handleReview}>Submit Review</button>
+        <button onClick={handleReview}>Submit Review</button>
+      </div>
+
+      {/* ⭐ Reviews List */}
+      <div style={{ marginTop: "40px", maxWidth: "600px", marginInline: "auto" }}>
+        {reviews.map((r, index) => (
+          <div
+            key={index}
+            style={{
+              border: "1px solid #ddd",
+              padding: "10px",
+              marginBottom: "10px",
+              borderRadius: "8px",
+            }}
+          >
+            <strong>⭐ {r.rating}</strong>
+            <p>{r.comment}</p>
           </div>
-        </>
-      )}
+        ))}
+      </div>
     </div>
   );
 }

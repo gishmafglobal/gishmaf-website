@@ -20,7 +20,7 @@ app.use(
   express.raw({ type: "application/json" }),
   require("./routes/webhook")
 );
-
+app.use(express.static(path.join(__dirname, "public")));
 // ======================================
 // MIDDLEWARE
 // ======================================
