@@ -1,9 +1,8 @@
-// require("dotenv").config(); // ✅ MUST BE FIRST LINE
 require("dotenv").config({ path: __dirname + "/.env" });
-console.log("FRONTEND_URL:", process.env.FRONTEND_URL);
-console.log("STRIPE:", process.env.STRIPE_SECRET_KEY ? "OK" : "MISSING");
 
-console.log("🔥 BACKEND SERVER IS RUNNING 🔥");
+console.log("FRONTEND_URL:", process.env.FRONTEND_URL);
+console.log("BACKEND_URL:", process.env.BACKEND_URL);
+console.log("STRIPE:", process.env.STRIPE_SECRET_KEY ? "OK" : "MISSING");
 
 const express = require("express");
 const mongoose = require("mongoose");
@@ -13,14 +12,14 @@ const path = require("path");
 const app = express();
 
 // ======================================
-// STRIPE WEBHOOK (BEFORE express.json())
+// STRIPE WEBHOOK (MUST COME FIRST)
 // ======================================
 app.use(
   "/api/webhook",
   express.raw({ type: "application/json" }),
   require("./routes/webhook")
 );
-app.use(express.static(path.join(__dirname, "public")));
+
 // ======================================
 // MIDDLEWARE
 // ======================================
@@ -28,14 +27,23 @@ app.use(cors({ origin: "*" }));
 app.use(express.json());
 
 // ======================================
-// STATIC FILES
+// STATIC FILES (VERY IMPORTANT FIX)
 // ======================================
+
+// Serve PDFs correctly
+app.use(
+  "/pdfs",
+  express.static(path.join(__dirname, "public/pdfs"))
+);
+
+// Optional: serve other static files
 app.use(express.static(path.join(__dirname, "public")));
 
 // ======================================
 // DATABASE
 // ======================================
-mongoose.connect(process.env.MONGO_URI)
+mongoose
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB Connected"))
   .catch((err) => console.error("❌ MongoDB Error:", err));
 
