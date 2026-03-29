@@ -1,125 +1,3 @@
-// import { useState, useEffect } from "react";
-// import "./books.css";
-
-// const API_URL =
-//   process.env.REACT_APP_API_URL ||
-//   "https://gishmaf-website-1.onrender.com";
-
-// export default function Books() {
-//   const [loadingBook, setLoadingBook] = useState(null);
-//   const [ratings, setRatings] = useState({});
-
-//   const books = [
-//     { id: "book1", title: "Escape from the Street", image: "/images/book1.jpg" },
-//     { id: "book2", title: "A Lonely Life Survivor", image: "/images/book2.jpg" },
-//   ];
-
-//   // ===============================
-//   // FETCH RATINGS FOR EACH BOOK
-//   // ===============================
-//   useEffect(() => {
-//     const fetchRatings = async () => {
-//       try {
-//         const updatedRatings = {};
-
-//         for (const book of books) {
-//           const res = await fetch(`${API_URL}/api/reviews/${book.id}`);
-//           const reviews = await res.json();
-
-//           if (reviews.length > 0) {
-//             const avg =
-//               reviews.reduce((acc, r) => acc + r.rating, 0) /
-//               reviews.length;
-
-//             updatedRatings[book.id] = {
-//               average: avg.toFixed(1),
-//               count: reviews.length,
-//             };
-//           } else {
-//             updatedRatings[book.id] = {
-//               average: "0.0",
-//               count: 0,
-//             };
-//           }
-//         }
-
-//         setRatings(updatedRatings);
-//       } catch (err) {
-//         console.error(err);
-//       }
-//     };
-
-//     fetchRatings();
-//   }, []);
-
-//   // ===============================
-//   // HANDLE PURCHASE
-//   // ===============================
-//   const handleBookPurchase = async (bookId) => {
-//     let email = localStorage.getItem("email");
-
-//     if (!email) {
-//       email = prompt("Enter your email:");
-//       if (!email) return;
-//       localStorage.setItem("email", email);
-//     }
-
-//     try {
-//       setLoadingBook(bookId);
-
-//       const res = await fetch(`${API_URL}/api/books/create-book-session`, {
-//         method: "POST",
-//         headers: { "Content-Type": "application/json" },
-//         body: JSON.stringify({ bookId, email }),
-//       });
-
-//       const data = await res.json();
-
-//       if (data.url) {
-//         window.location.href = data.url;
-//       } else {
-//         alert(data.error || "Payment failed");
-//       }
-//     } catch (err) {
-//       alert("Something went wrong.");
-//     } finally {
-//       setLoadingBook(null);
-//     }
-//   };
-
-//   return (
-//     <section className="books-page">
-//       <h1 className="books-title">Our Books</h1>
-
-//       <div className="books-grid">
-//         {books.map((book) => (
-//           <div key={book.id} className="book-card">
-//             <img src={book.image} alt={book.title} />
-
-//             <div className="book-info">
-//               <h3>{book.title}</h3>
-
-//               {/* ⭐ DISPLAY RATING */}
-//               <p>
-//                 ⭐ {ratings[book.id]?.average || "0.0"} (
-//                 {ratings[book.id]?.count || 0} reviews)
-//               </p>
-
-//               <button
-//                 className="buy-button"
-//                 onClick={() => handleBookPurchase(book.id)}
-//                 disabled={loadingBook === book.id}
-//               >
-//                 {loadingBook === book.id ? "Processing..." : "Buy Book"}
-//               </button>
-//             </div>
-//           </div>
-//         ))}
-//       </div>
-//     </section>
-//   );
-// }
-
 import { useState, useEffect } from "react";
 import "./books.css";
 
@@ -130,7 +8,9 @@ const API_URL =
 export default function Books() {
   const [loadingBook, setLoadingBook] = useState(null);
   const [ratings, setRatings] = useState({});
+  const [reviews, setReviews] = useState({});
   const [email, setEmail] = useState(localStorage.getItem("email") || "");
+  const [myBooks, setMyBooks] = useState([]);
 
   const books = [
     { id: "book1", title: "Escape from the Street", image: "/images/book1.jpg" },
@@ -138,25 +18,28 @@ export default function Books() {
   ];
 
   // ===============================
-  // FETCH RATINGS
+  // FETCH RATINGS + REVIEWS
   // ===============================
   useEffect(() => {
-    const fetchRatings = async () => {
+    const fetchData = async () => {
       try {
         const updatedRatings = {};
+        const updatedReviews = {};
 
         for (const book of books) {
           const res = await fetch(`${API_URL}/api/reviews/${book.id}`);
-          const reviews = await res.json();
+          const bookReviews = await res.json();
 
-          if (reviews.length > 0) {
+          updatedReviews[book.id] = bookReviews;
+
+          if (bookReviews.length > 0) {
             const avg =
-              reviews.reduce((acc, r) => acc + r.rating, 0) /
-              reviews.length;
+              bookReviews.reduce((acc, r) => acc + r.rating, 0) /
+              bookReviews.length;
 
             updatedRatings[book.id] = {
               average: avg.toFixed(1),
-              count: reviews.length,
+              count: bookReviews.length,
             };
           } else {
             updatedRatings[book.id] = {
@@ -167,13 +50,37 @@ export default function Books() {
         }
 
         setRatings(updatedRatings);
+        setReviews(updatedReviews);
       } catch (err) {
         console.error(err);
       }
     };
 
-    fetchRatings();
+    fetchData();
   }, []);
+
+  // ===============================
+  // MASK EMAIL FUNCTION
+  // ===============================
+  const maskEmail = (email) => {
+    if (!email) return "";
+    const [name, domain] = email.split("@");
+    return name.slice(0, 2) + "****@" + domain;
+  };
+
+  // ===============================
+  // FETCH PURCHASED BOOKS
+  // ===============================
+  const fetchMyBooks = async () => {
+    if (!email) return;
+
+    const res = await fetch(`${API_URL}/api/books/my-books?email=${email}`);
+    const data = await res.json();
+
+    if (data.success) {
+      setMyBooks(data.books);
+    }
+  };
 
   // ===============================
   // HANDLE PURCHASE
@@ -184,7 +91,6 @@ export default function Books() {
       return;
     }
 
-    // ✅ SAVE EMAIL BEFORE PAYMENT
     localStorage.setItem("email", email);
 
     try {
@@ -192,13 +98,8 @@ export default function Books() {
 
       const res = await fetch(`${API_URL}/api/books/create-book-session`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          bookId,
-          email,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookId, email }),
       });
 
       const data = await res.json();
@@ -209,7 +110,6 @@ export default function Books() {
         alert(data.error || "Payment failed");
       }
     } catch (err) {
-      console.error(err);
       alert("Something went wrong.");
     } finally {
       setLoadingBook(null);
@@ -220,11 +120,10 @@ export default function Books() {
     <section className="books-page">
       <h1 className="books-title">Our Books</h1>
 
-      {/* ✅ EMAIL INPUT (NEW) */}
       <div style={{ textAlign: "center", marginBottom: "30px" }}>
         <input
           type="email"
-          placeholder="Enter your email before purchase"
+          placeholder="Enter your email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           style={{
@@ -235,7 +134,35 @@ export default function Books() {
             marginRight: "10px",
           }}
         />
+
+        <button
+          onClick={fetchMyBooks}
+          style={{
+            padding: "10px 20px",
+            borderRadius: "6px",
+            cursor: "pointer",
+          }}
+        >
+          View My Library
+        </button>
       </div>
+
+      {/* =============================== */}
+      {/* MY LIBRARY */}
+      {/* =============================== */}
+      {myBooks.length > 0 && (
+        <div style={{ marginBottom: "40px" }}>
+          <h2>📚 My Purchased Books</h2>
+
+          {myBooks.map((b, index) => (
+            <div key={index}>
+              <a href={b.bookUrl} target="_blank" rel="noreferrer">
+                📥 Download {b.bookId}
+              </a>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="books-grid">
         {books.map((book) => (
@@ -245,13 +172,11 @@ export default function Books() {
             <div className="book-info">
               <h3>{book.title}</h3>
 
-              {/* ⭐ RATINGS */}
               <p>
                 ⭐ {ratings[book.id]?.average || "0.0"} (
                 {ratings[book.id]?.count || 0} reviews)
               </p>
 
-              {/* 🔥 BIGGER BUTTON */}
               <button
                 onClick={() => handleBookPurchase(book.id)}
                 disabled={loadingBook === book.id}
@@ -268,6 +193,26 @@ export default function Books() {
               >
                 {loadingBook === book.id ? "Processing..." : "Buy Book"}
               </button>
+
+              {/* REVIEWS */}
+              <div style={{ marginTop: "20px", textAlign: "left" }}>
+                {reviews[book.id]?.slice(0, 3).map((r, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      borderTop: "1px solid #eee",
+                      paddingTop: "8px",
+                      marginTop: "8px",
+                      fontSize: "14px",
+                    }}
+                  >
+                    <strong>{maskEmail(r.email)}</strong>
+                    <div>⭐ {r.rating}</div>
+                    <p>{r.comment}</p>
+                  </div>
+                ))}
+              </div>
+
             </div>
           </div>
         ))}
