@@ -48,7 +48,7 @@ export default function Footer() {
       {/* 🔹 CONTACT INFO */}
       <div style={{ marginTop: "20px", fontSize: "14px", color: "#ccc" }}>
         <p>Email: gishmafglobal@gmail.com</p>
-        <p>Location: United Kingdom</p>
+        <p>Locations: United Kingdom, United States of America, Nigeria</p>
       </div>
 
       {/* 🔹 COPYRIGHT */}
