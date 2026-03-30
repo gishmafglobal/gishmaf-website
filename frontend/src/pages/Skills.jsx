@@ -1,62 +1,159 @@
 
 
+import { useState } from "react";
 import logo from "../assets/logo.png";
 import "./skills.css";
+import Chatbot from "./Chatbot"; // ✅ IMPORT CHATBOT
 
 const skills = [
   {
     title: "Musical Instruments",
-    desc: "Learn piano, guitar, drums, violin and more from beginner to advanced level.",
+    desc: "Master instruments with guided lessons.",
     img: "https://images.unsplash.com/photo-1511379938547-c1f69419868d"
   },
   {
     title: "Tech Skills",
-    desc: "Web development, coding, design, AI tools, and digital skills for the future.",
+    desc: "Learn coding, AI, and digital tools.",
     img: "https://images.unsplash.com/photo-1518770660439-4636190af475"
   },
   {
-    title: "Hair Making & Beauty",
-    desc: "Professional hair styling, braiding, beauty care and salon techniques.",
+    title: "Hair & Beauty",
+    desc: "Professional styling and beauty skills.",
     img: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9"
   },
   {
-    title: "Tailoring & Fashion",
-    desc: "Learn sewing, fashion design, clothing construction and styling.",
+    title: "Fashion",
+    desc: "Design and create your own clothing.",
     img: "https://images.unsplash.com/photo-1521334884684-d80222895322"
   },
   {
-    title: "Media & Content Creation",
-    desc: "Photography, video editing, content creation and storytelling skills.",
+    title: "Media",
+    desc: "Content creation, video editing, storytelling.",
     img: "https://images.unsplash.com/photo-1492724441997-5dc865305da7"
   },
   {
-    title: "Entrepreneurship",
-    desc: "Learn how to start, grow and manage successful businesses.",
+    title: "Business",
+    desc: "Start and scale profitable ventures.",
     img: "https://images.unsplash.com/photo-1552664730-d307ca884978"
   }
 ];
 
 export default function Skills() {
+  const [selectedSkill, setSelectedSkill] = useState(null);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    message: ""
+  });
+
+  // ✅ TRACK USER ACTIONS
+  const trackEvent = (action, skill) => {
+    console.log(`[TRACKING]: ${action} - ${skill}`);
+  };
+
+  // ✅ HANDLE FORM SUBMIT
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    const message = `Hello, my name is ${formData.name}. I am interested in ${selectedSkill.title}. ${formData.message}`;
+
+    trackEvent("Form Submitted", selectedSkill.title);
+
+    // WhatsApp redirect
+    window.open(
+      `https://wa.me/19378072552?text=${encodeURIComponent(message)}`,
+      "_blank"
+    );
+
+    // Reset form + close modal
+    setFormData({ name: "", email: "", message: "" });
+    setSelectedSkill(null);
+  };
+
   return (
     <div className="hub">
+      {/* HEADER */}
       <div className="hub-header">
-        <img src={logo} alt="Gishmaf Logo" />
+        <img src={logo} alt="logo" />
         <h1>Gishmaf Learning Hub</h1>
-        <p>Empowering skills. Unlocking potential. Building the future.</p>
+        <p>Build real skills. Create real income. Transform your future.</p>
       </div>
 
+      {/* SKILLS GRID */}
       <div className="skills-grid">
-        {skills.map((skill, index) => (
-          <div className="skill-card" key={index}>
+        {skills.map((skill, i) => (
+          <div
+            key={i}
+            className="skill-card"
+            onClick={() => {
+              setSelectedSkill(skill);
+              trackEvent("Skill Click", skill.title);
+            }}
+          >
             <img src={skill.img} alt={skill.title} />
             <div className="skill-content">
               <h3>{skill.title}</h3>
               <p>{skill.desc}</p>
-              <button>Start Learning</button>
             </div>
           </div>
         ))}
       </div>
+
+      {/* MODAL FORM */}
+      {selectedSkill && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h2>{selectedSkill.title}</h2>
+            <p>
+              Start your journey today. Fill in your details and we’ll connect
+              you instantly.
+            </p>
+
+            <form onSubmit={handleSubmit}>
+              <input
+                type="text"
+                placeholder="Full Name"
+                required
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
+              />
+
+              <input
+                type="email"
+                placeholder="Email Address"
+                required
+                value={formData.email}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
+              />
+
+              <textarea
+                placeholder="What would you like to achieve?"
+                required
+                value={formData.message}
+                onChange={(e) =>
+                  setFormData({ ...formData, message: e.target.value })
+                }
+              />
+
+              <button type="submit">Continue →</button>
+            </form>
+
+            <button
+              className="close-btn"
+              onClick={() => setSelectedSkill(null)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ✅ CHATBOT ADDED HERE */}
+      <Chatbot />
     </div>
   );
 }
