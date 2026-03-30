@@ -1,98 +1,3 @@
-
-// import { useNavigate } from "react-router-dom";
-// import {
-//   FaBook,
-//   FaTools,
-//   FaMusic,
-//   FaEnvelope,
-//   FaBrain,
-//   FaCogs,
-//   FaComments,
-// } from "react-icons/fa";
-
-// export default function CardGrid() {
-//   const navigate = useNavigate();
-
-//   const cards = [
-//     {
-//       icon: <FaCogs />,
-//       title: "What We Do",
-//       description:
-//         "Discover the mission and vision of Gishmaf.",
-//       link: "/about",
-//     },
-//     {
-//       icon: <FaBook />,
-//       title: "Book Shelf",
-//       description:
-//         "Explore our curated collection of books.",
-//       link: "/books",
-//     },
-//     {
-//       icon: <FaBrain />,
-//       title: "Skill Hub",
-//       description:
-//         "Access learning resources and practical guides.",
-//       link: "/skills",
-//     },
-//     {
-//       icon: <FaTools />,
-//       title: "Consultancy",
-//       description:
-//         "Get professional guidance and project support.",
-//       link: "/consultancy",
-//     },
-//     {
-//       icon: <FaMusic />,
-//       title: "Music",
-//       description:
-//         "Experience uplifting and inspiring music content.",
-//       link: "/music",
-//     },
-//     {
-//       icon: <FaEnvelope />,
-//       title: "Contact Details",
-//       description:
-//         "Reach out to us for inquiries and feedback.",
-//       link: "/contact",
-//     },
-//     {
-//       icon: <FaComments />,
-//       title: "Community Comments",
-//       description:
-//         "Read what others are saying and drop your own comment.",
-//       link: "/comments",
-//     },
-//   ];
-
-//   return (
-//     <section className="card-grid">
-//       {cards.map((card, i) => (
-//         <div
-//           key={i}
-//           className="card"
-//           onClick={() => navigate(card.link)}
-//           style={{ cursor: "pointer" }}
-//         >
-//           <div
-//             style={{
-//               fontSize: "30px",
-//               marginBottom: "10px",
-//               color: "#f5b942",
-//             }}
-//           >
-//             {card.icon}
-//           </div>
-
-//           <h3>{card.title}</h3>
-//           <p>{card.description}</p>
-//         </div>
-//       ))}
-//     </section>
-//   );
-// }
-
-
 import { useNavigate } from "react-router-dom";
 import {
   FaBook,
@@ -103,6 +8,7 @@ import {
   FaCogs,
   FaComments,
   FaShieldAlt,
+  FaFileContract,
 } from "react-icons/fa";
 
 export default function CardGrid() {
@@ -113,57 +19,71 @@ export default function CardGrid() {
       icon: <FaCogs />,
       title: "What We Do",
       description:
-        "Learn about Gishmaf’s mission, vision, and the value we bring through innovation and creativity.",
+        "Understand our mission, vision, and how we create value through innovation and knowledge.",
       link: "/about",
     },
     {
       icon: <FaBook />,
       title: "Book Shelf",
       description:
-        "Browse our carefully selected collection of books designed to educate, inspire, and empower you.",
+        "Explore our collection of inspiring and educational books designed for personal growth.",
       link: "/books",
+    },
+    {
+      icon: <FaBook />,
+      title: "Blog",
+      description:
+        "Read insightful articles on personal growth, skills, and success strategies.",
+      link: "/blog",
     },
     {
       icon: <FaBrain />,
       title: "Skill Hub",
       description:
-        "Gain access to practical knowledge, tutorials, and resources to build valuable real-world skills.",
+        "Learn practical skills and gain knowledge that can help you succeed in real life.",
       link: "/skills",
     },
     {
       icon: <FaTools />,
       title: "Consultancy",
       description:
-        "Get expert advice, tailored solutions, and professional support for your projects and ideas.",
+        "Access professional advice and tailored solutions for your ideas and projects.",
       link: "/consultancy",
     },
     {
       icon: <FaMusic />,
       title: "Music",
       description:
-        "Enjoy uplifting and inspiring music content created to motivate and elevate your experience.",
+        "Enjoy inspiring and uplifting music content curated to motivate you.",
       link: "/music",
     },
     {
       icon: <FaEnvelope />,
       title: "Contact",
       description:
-        "Reach out to us for inquiries, partnerships, or support—we’re always ready to connect.",
+        "Reach out to us for inquiries, collaborations, or support.",
       link: "/contact",
     },
     {
       icon: <FaComments />,
       title: "Community",
       description:
-        "Join the conversation—read feedback, share your thoughts, and engage with others.",
+        "Engage with others, share your thoughts, and read feedback from users.",
       link: "/comments",
     },
     {
       icon: <FaShieldAlt />,
       title: "Privacy Policy",
       description:
-        "Understand how we collect, use, and protect your information while you use our platform.",
+        "Learn how we collect, use, and protect your personal information.",
       link: "/privacy",
+    },
+    {
+      icon: <FaFileContract />,
+      title: "Terms & Conditions",
+      description:
+        "Read the terms governing the use of our platform and services.",
+      link: "/terms",
     },
   ];
 

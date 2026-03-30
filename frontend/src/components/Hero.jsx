@@ -1,4 +1,3 @@
-
 import hero from "../assets/hero.jpg";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -9,7 +8,11 @@ export default function Hero() {
   return (
     <section
       className="hero"
-      style={{ backgroundImage: `url(${hero})` }}
+      style={{
+        backgroundImage: `url(${hero})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
     >
       <motion.div
         className="hero-content"
@@ -17,19 +20,31 @@ export default function Hero() {
         animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 1 }}
       >
-        <h2>
-          Welcome to <br /> Gishmaf Global Concept!
-        </h2>
+        <h1>
+          Welcome to <br /> Gishmaf Global Concept
+        </h1>
 
         <p className="gold">
-          Empowering Tech, Knowledge & Creativity.
+          Empowering Knowledge, Skills & Creativity
         </p>
 
-        <p>Bringing Your Ideas to Life!</p>
+        <p>
+          Discover books, learn valuable skills, and access resources designed
+          to help you grow and succeed in today’s world.
+        </p>
 
-        <button onClick={() => navigate("/about")}>
-          Get Started
-        </button>
+        <div style={{ marginTop: "20px" }}>
+          <button
+            onClick={() => navigate("/about")}
+            style={{ marginRight: "10px" }}
+          >
+            Learn More
+          </button>
+
+          <button onClick={() => navigate("/books")}>
+            Explore Books
+          </button>
+        </div>
       </motion.div>
     </section>
   );

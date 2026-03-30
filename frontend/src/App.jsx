@@ -5,6 +5,8 @@ import Footer from "./components/Footer";
 
 import Terms from "./pages/Terms";
 
+import Blog from "./pages/Blog";
+
 // Main Pages
 import Home from "./pages/Home";
 import About from "./pages/About";
@@ -39,6 +41,7 @@ export default function App() {
           <Route path="/comments" element={<Comments />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
+          <Route path="/blog" element={<Blog />} />
 
           {/* Payment Routes */}
           <Route path="/premium" element={<Premium />} />

@@ -50,7 +50,7 @@ export default function AboutDisplay() {
           setPIndex((prev) => (prev + 1) % paragraphs.length);
         }, 10000);
       }
-    }, 25);
+    }, 15);
 
     return () => {
       clearInterval(typingRef.current);
