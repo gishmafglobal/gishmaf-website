@@ -3,6 +3,9 @@ import { Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 
+import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
+
 import Terms from "./pages/Terms";
 
 import Blog from "./pages/Blog";
@@ -42,6 +45,7 @@ export default function App() {
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:id" element={<BlogPost />} />
 
           {/* Payment Routes */}
           <Route path="/premium" element={<Premium />} />
