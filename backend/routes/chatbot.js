@@ -1,7 +1,13 @@
 // routes/chatbot.js
 const express = require("express");
 const router = express.Router();
-const fetch = require("node-fetch");
+const { Configuration, OpenAIApi } = require("openai");
+
+// Configure OpenAI SDK
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+const openai = new OpenAIApi(configuration);
 
 // POST /api/chat
 router.post("/", async (req, res) => {
@@ -12,43 +18,36 @@ router.post("/", async (req, res) => {
     return res.status(400).json({ error: "Messages array is required and cannot be empty." });
   }
 
-  // Check if API key is present
+  // Check for API key
   if (!process.env.OPENAI_API_KEY) {
-    console.error("❌ OpenAI API key not found in environment variables.");
-    return res.status(500).json({ error: "OpenAI API key not configured on server." });
+    console.error("❌ OpenAI API key not found.");
+    return res.status(500).json({ error: "OpenAI API key is not configured on the server." });
   }
 
   try {
-    // Call OpenAI Chat Completions API
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gpt-3.5-turbo",
-        messages,
-        temperature: 0.7,
-        max_tokens: 300,
-      }),
+    // Call OpenAI Chat Completion
+    const completion = await openai.createChatCompletion({
+      model: "gpt-3.5-turbo",
+      messages,
+      temperature: 0.7,
+      max_tokens: 300,
     });
 
-    // Parse OpenAI response
-    const data = await response.json();
+    // Extract AI message safely
+    const botMessage =
+      completion?.data?.choices?.[0]?.message?.content?.trim() ||
+      "Sorry, I couldn't generate a response.";
 
-    // Check for OpenAI errors
-    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-      console.error("❌ Unexpected response from OpenAI:", data);
-      return res.status(500).json({ error: "Unexpected response from OpenAI API." });
-    }
+    res.json({ message: botMessage });
 
-    // Return AI message to frontend
-    res.json({ message: data.choices[0].message.content });
+  } catch (error) {
+    // Detailed error logging for backend
+    console.error("❌ Chatbot error:", error?.response?.data || error.message || error);
 
-  } catch (err) {
-    console.error("❌ OpenAI request failed:", err);
-    res.status(500).json({ error: "Failed to communicate with OpenAI API." });
+    // Return generic message to frontend
+    res.status(500).json({
+      error: "Something went wrong while communicating with the AI service. Please try again.",
+    });
   }
 });
 
