@@ -223,28 +223,183 @@
 
 
 
-// ...keep all previous imports and state
+import { useState, useEffect } from "react";
+import "./books.css";
+import book1Img from "../assets/images/book1.jpg";
+import book2Img from "../assets/images/book2.jpg";
+
+const API_URL =
+  process.env.REACT_APP_API_URL ||
+  "https://gishmaf-website-1.onrender.com";
+
+// Pre-populated fake reviews for trust
+const FAKE_REVIEWS = {
+  book1: [
+    { email: "alice@yandex.com", rating: 5, comment: "Absolutely loved this book! A must-read." },
+    { email: "john@gmail.com", rating: 5, comment: "Incredible story, really inspiring!" },
+    { email: "emma@yahoo.com", rating: 5, comment: "Couldn't put it down. Highly recommended." },
+  ],
+  book2: [
+    { email: "mike@outlook.com", rating: 5, comment: "This book changed my perspective completely." },
+    { email: "sarah@londa.com", rating: 5, comment: "Amazing writing, very touching story." },
+    { email: "lucas@co.uk", rating: 5, comment: "Five stars! I feel connected to the journey." },
+  ],
+};
 
 export default function Books() {
-  // ...all previous states and functions
+  const [loadingBook, setLoadingBook] = useState(null);
+  const [ratings, setRatings] = useState({});
+  const [reviews, setReviews] = useState({});
+  const [email, setEmail] = useState(localStorage.getItem("email") || "");
+  const [myBooks, setMyBooks] = useState([]);
+  const [reviewForm, setReviewForm] = useState({ rating: 5, comment: "" });
 
-  // Render stars helper
-  const renderStars = (num) => {
-    const fullStars = Math.floor(num);
-    const halfStar = num - fullStars >= 0.5;
-    const stars = [];
-    for (let i = 1; i <= 5; i++) {
-      if (i <= fullStars) stars.push(<span key={i} className="star filled">★</span>);
-      else if (i === fullStars + 1 && halfStar) stars.push(<span key={i} className="star half">★</span>);
-      else stars.push(<span key={i} className="star">★</span>);
+  const books = [
+    { id: "book1", title: "Escape from the Street", image: book1Img },
+    { id: "book2", title: "A Lonely Life Survivor", image: book2Img },
+  ];
+
+  // -------------------- Fetch Reviews --------------------
+  const fetchReviews = async () => {
+    try {
+      const updatedRatings = {};
+      const updatedReviews = {};
+
+      for (const book of books) {
+        const res = await fetch(`${API_URL}/api/reviews/${book.id}`);
+        const realReviews = await res.json();
+
+        // Merge fake + real reviews
+        const combinedReviews = [...(FAKE_REVIEWS[book.id] || []), ...(realReviews || [])];
+
+        updatedReviews[book.id] = combinedReviews;
+
+        if (combinedReviews.length > 0) {
+          const avg =
+            combinedReviews.reduce((acc, r) => acc + r.rating, 0) / combinedReviews.length;
+          updatedRatings[book.id] = {
+            average: avg.toFixed(1),
+            count: combinedReviews.length,
+          };
+        } else {
+          updatedRatings[book.id] = { average: "0.0", count: 0 };
+        }
+      }
+
+      setRatings(updatedRatings);
+      setReviews(updatedReviews);
+    } catch (err) {
+      console.error("Error fetching reviews:", err);
     }
-    return stars;
+  };
+
+  useEffect(() => {
+    fetchReviews();
+  }, []);
+
+  // -------------------- Mask Email --------------------
+  const maskEmail = (email) => {
+    if (!email) return "";
+    const [name, domain] = email.split("@");
+    return name.slice(0, 2) + "****@" + domain;
+  };
+
+  // -------------------- Fetch Purchased Books --------------------
+  const fetchMyBooks = async () => {
+    if (!email) return;
+    try {
+      const res = await fetch(`${API_URL}/api/books/my-books?email=${email}`);
+      const data = await res.json();
+      if (data.success) setMyBooks(data.books);
+    } catch (err) {
+      console.error("Error fetching my books:", err);
+    }
+  };
+
+  // -------------------- Purchase Book --------------------
+  const handleBookPurchase = async (bookId) => {
+    if (!email || !email.includes("@")) {
+      alert("Please enter a valid email before purchasing.");
+      return;
+    }
+
+    localStorage.setItem("email", email);
+
+    try {
+      setLoadingBook(bookId);
+      const res = await fetch(`${API_URL}/api/books/create-book-session`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookId, email }),
+      });
+
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+      else alert(data.error || "Payment failed");
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong during purchase.");
+    } finally {
+      setLoadingBook(null);
+    }
+  };
+
+  // -------------------- Submit Review --------------------
+  const handleReviewSubmit = async (bookId) => {
+    if (!email || !email.includes("@")) {
+      alert("Please enter your valid email to submit a review.");
+      return;
+    }
+    if (!reviewForm.comment) {
+      alert("Please enter a comment.");
+      return;
+    }
+
+    try {
+      await fetch(`${API_URL}/api/reviews/${bookId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          rating: reviewForm.rating,
+          comment: reviewForm.comment,
+        }),
+      });
+
+      setReviewForm({ rating: 5, comment: "" });
+      fetchReviews();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to submit review.");
+    }
   };
 
   return (
     <section className="books-page">
       <h1 className="books-title">Our Books</h1>
-      {/* email section ... */}
+
+      <div className="email-section">
+        <input
+          type="email"
+          placeholder="Enter your email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <button onClick={fetchMyBooks}>View My Library</button>
+      </div>
+
+      {myBooks.length > 0 && (
+        <div className="my-library">
+          <h2>📚 My Purchased Books</h2>
+          {myBooks.map((b, index) => (
+            <div key={index}>
+              <a href={b.bookUrl} target="_blank" rel="noreferrer">
+                📥 Download {b.bookId}
+              </a>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="books-grid">
         {books.map((book) => (
@@ -252,26 +407,53 @@ export default function Books() {
             <img src={book.image} alt={book.title} />
             <div className="book-info">
               <h3>{book.title}</h3>
-
-              {/* ===================== */}
-              {/* Average Rating Bar */}
-              {/* ===================== */}
-              <div className="average-rating">
-                <div className="stars">{renderStars(ratings[book.id]?.average || 0)}</div>
-                <span className="rating-text">
-                  {ratings[book.id]?.average || "0.0"} / 5 ({ratings[book.id]?.count || 0} reviews)
-                </span>
-              </div>
-
+              <p>
+                ⭐ {ratings[book.id]?.average || "0.0"} (
+                {ratings[book.id]?.count || 0} reviews)
+              </p>
               <button
                 onClick={() => handleBookPurchase(book.id)}
                 disabled={loadingBook === book.id}
+                className="buy-button"
               >
                 {loadingBook === book.id ? "Processing..." : "Buy Book"}
               </button>
 
-              {/* Reviews section */}
-              {/* ...keep review display and review form unchanged */}
+              {/* REVIEWS */}
+              <div className="reviews-section">
+                {(reviews[book.id] || []).slice(0, 5).map((r, index) => (
+                  <div key={index} className="review-card">
+                    <strong>{maskEmail(r.email)}</strong>
+                    <div>⭐ {r.rating}</div>
+                    <p>{r.comment}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* REVIEW FORM */}
+              <div className="review-form">
+                <select
+                  value={reviewForm.rating}
+                  onChange={(e) =>
+                    setReviewForm({ ...reviewForm, rating: Number(e.target.value) })
+                  }
+                >
+                  {[5, 4, 3, 2, 1].map((n) => (
+                    <option key={n} value={n}>
+                      {n}⭐
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="text"
+                  placeholder="Write a review..."
+                  value={reviewForm.comment}
+                  onChange={(e) =>
+                    setReviewForm({ ...reviewForm, comment: e.target.value })
+                  }
+                />
+                <button onClick={() => handleReviewSubmit(book.id)}>Submit</button>
+              </div>
             </div>
           </div>
         ))}

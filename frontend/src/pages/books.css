@@ -57,32 +57,209 @@
 
 
 
+/* -------------------- General Page -------------------- */
+.books-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 30px 20px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+  background-color: #fdfdfd;
+}
 
-/* Average rating at top of book card */
-.average-rating {
+.books-title {
+  text-align: center;
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 30px;
+  color: #222;
+}
+
+/* -------------------- Email Section -------------------- */
+.email-section {
   display: flex;
-  align-items: center;
   justify-content: center;
-  margin-bottom: 10px;
-  gap: 6px;
+  align-items: center;
+  margin-bottom: 30px;
+  gap: 10px;
 }
 
-.average-rating .stars .star {
-  font-size: 18px;
-  color: #ccc;
-  margin-right: 2px;
-}
-
-.average-rating .stars .star.filled {
-  color: #f5b942;
-}
-
-.average-rating .stars .star.half {
-  position: relative;
-  color: #f5b942;
-}
-
-.average-rating .rating-text {
+.email-section input {
+  padding: 12px 14px;
+  width: 280px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
   font-size: 14px;
+}
+
+.email-section button {
+  padding: 12px 20px;
+  border-radius: 6px;
+  border: none;
+  background-color: #f5b942;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.email-section button:hover {
+  background-color: #e0a82b;
+}
+
+/* -------------------- My Library -------------------- */
+.my-library {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 40px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.my-library h2 {
+  margin-bottom: 15px;
+}
+
+.my-library a {
+  display: inline-block;
+  margin-bottom: 8px;
+  color: #1a73e8;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.my-library a:hover {
+  text-decoration: underline;
+}
+
+/* -------------------- Books Grid -------------------- */
+.books-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.book-card {
+  background-color: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s;
+}
+
+.book-card:hover {
+  transform: translateY(-3px);
+}
+
+.book-card img {
+  width: 100%;
+  height: 320px;
+  object-fit: cover;
+}
+
+.book-info {
+  padding: 15px 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.book-info h3 {
+  font-size: 20px;
+  margin: 10px 0;
+  font-weight: 600;
+  color: #111;
+}
+
+.book-info p {
+  font-size: 14px;
+  margin-bottom: 10px;
   color: #555;
+}
+
+/* -------------------- Buy Button -------------------- */
+.buy-button {
+  padding: 14px 0;
+  font-size: 16px;
+  background-color: #f5b942;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-bottom: 15px;
+  transition: background 0.3s;
+}
+
+.buy-button:hover:enabled {
+  background-color: #e0a82b;
+}
+
+.buy-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* -------------------- Reviews Section -------------------- */
+.reviews-section {
+  margin-top: 15px;
+}
+
+.review-card {
+  border-top: 1px solid #eee;
+  padding: 10px 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.review-card strong {
+  display: inline-block;
+  margin-bottom: 4px;
+  color: #222;
+}
+
+.review-card div {
+  color: #f5b942;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.review-card p {
+  margin: 0;
+  color: #444;
+}
+
+/* -------------------- Review Form -------------------- */
+.review-form {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.review-form select,
+.review-form input {
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  font-size: 13px;
+}
+
+.review-form input {
+  width: 180px;
+}
+
+.review-form button {
+  padding: 6px 12px;
+  border-radius: 4px;
+  border: none;
+  background-color: #f5b942;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.review-form button:hover {
+  background-color: #e0a82b;
 }
