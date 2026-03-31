@@ -1,4 +1,4 @@
-.books-page {
+/* .books-page {
   padding: 60px 20px;
   text-align: center;
 }
@@ -48,4 +48,200 @@
 .book-info p {
   font-size: 14px;
   color: #777;
+} */
+
+
+/* ============================= */
+/* books.css - Professional Styling */
+/* ============================= */
+
+
+
+/* ============================= */
+/* Books Page Container          */
+/* ============================= */
+.books-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f9f9f9;
+}
+
+/* Page Title */
+.books-title {
+  text-align: center;
+  font-size: 32px;
+  margin-bottom: 40px;
+  font-weight: bold;
+  color: #333;
+}
+
+/* ============================= */
+/* Grid Layout for Books         */
+/* ============================= */
+.books-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 25px;
+}
+
+/* Book Card */
+.book-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: transform 0.2s;
+}
+
+.book-card:hover {
+  transform: translateY(-4px);
+}
+
+/* Book Image */
+.book-card img {
+  width: 100%;
+  height: 320px;
+  object-fit: cover;
+}
+
+/* Book Info */
+.book-info {
+  padding: 20px;
+}
+
+.book-info h3 {
+  font-size: 20px;
+  margin-bottom: 10px;
+  color: #222;
+}
+
+.book-info p {
+  font-size: 16px;
+  margin-bottom: 12px;
+  color: #555;
+}
+
+/* Buy Button */
+.book-info button {
+  background-color: #f5b942;
+  color: #000;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  padding: 14px 28px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.book-info button:hover {
+  background-color: #e0a832;
+}
+
+/* ============================= */
+/* Reviews Section               */
+/* ============================= */
+.book-info > div {
+  margin-top: 20px;
+}
+
+.book-info > div > div {
+  border-top: 1px solid #eee;
+  padding-top: 10px;
+  margin-top: 10px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #333;
+}
+
+.book-info > div > div strong {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: bold;
+}
+
+/* Review Comment Text */
+.book-info > div > div p {
+  margin: 0;
+  margin-top: 4px;
+  color: #555;
+}
+
+/* ============================= */
+/* Review Form                   */
+/* ============================= */
+.book-info select,
+.book-info input[type="text"] {
+  padding: 6px 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  margin-right: 6px;
+}
+
+.book-info button[type="submit"] {
+  padding: 6px 12px;
+  font-size: 14px;
+  border-radius: 5px;
+  cursor: pointer;
+  background-color: #4caf50;
+  color: #fff;
+  border: none;
+  font-weight: bold;
+  transition: background 0.2s;
+}
+
+.book-info button[type="submit"]:hover {
+  background-color: #43a047;
+}
+
+/* ============================= */
+/* My Library Section            */
+/* ============================= */
+.books-page h2 {
+  margin-bottom: 15px;
+  font-size: 22px;
+  color: #222;
+}
+
+.books-page a {
+  text-decoration: none;
+  color: #f5b942;
+  font-weight: bold;
+  margin-bottom: 8px;
+  display: inline-block;
+}
+
+.books-page a:hover {
+  text-decoration: underline;
+}
+
+/* ============================= */
+/* Responsive Adjustments        */
+/* ============================= */
+@media (max-width: 768px) {
+  .book-card img {
+    height: 250px;
+  }
+}
+
+@media (max-width: 480px) {
+  .books-page {
+    padding: 20px 10px;
+  }
+
+  .book-info button {
+    width: 100%;
+  }
+
+  .book-info select,
+  .book-info input[type="text"] {
+    width: 100%;
+    margin-bottom: 6px;
+  }
+
+  .book-info button[type="submit"] {
+    width: 100%;
+  }
 }
