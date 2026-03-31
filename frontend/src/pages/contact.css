@@ -2,204 +2,162 @@
   padding: 40px 30px;
   font-family: Arial, Helvetica, sans-serif;
   background: #f5f5f5;
-  max-width: 1200px;
-  margin: auto;
 }
 
-/* HEADER */
 .contact-header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 30px;
 }
 
 .contact-header .logo {
-  width: 80px;
+  width: 90px;
   margin-bottom: 10px;
 }
 
 .contact-header h1 {
-  font-size: 28px;
+  font-size: 30px;
   margin-bottom: 10px;
 }
 
 .contact-header p {
-  color: #666;
-  max-width: 600px;
-  margin: auto;
+  color: gray;
 }
 
-/* INTRO TEXT */
 .contact-content {
   max-width: 900px;
   margin: auto;
   font-size: 16px;
   line-height: 1.7;
   color: #333;
-  margin-bottom: 40px;
+  margin-bottom: 30px;
 }
 
 .contact-content p {
   margin-bottom: 18px;
 }
 
-/* CONTACT BUTTONS */
-.contact-buttons {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 15px;
-  margin-bottom: 50px;
-}
-
-.contact-btn {
-  display: inline-block;
-  padding: 12px 25px;
-  border-radius: 8px;
-  text-decoration: none;
-  font-weight: bold;
-  width: 250px;
+.contact-email {
+  margin-top: 40px;
   text-align: center;
-  color: white;
-  transition: 0.3s ease;
+  background: white;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 5px 14px rgba(0,0,0,0.08);
 }
 
-.email-btn {
-  background-color: #007bff;
+.contact-email h2 {
+  margin-bottom: 10px;
 }
 
-.email-btn:hover {
-  background-color: #0056b3;
+.contact-email a {
+  display: inline-block;
+  font-size: 18px;
+  font-weight: bold;
+  text-decoration: none;
+  color: black;
+  margin: 8px 0;
 }
 
-.whatsapp-btn {
-  background-color: #25d366;
+.contact-email a:hover {
+  text-decoration: underline;
 }
 
-.whatsapp-btn:hover {
-  background-color: #1da851;
-}
-
-/* ADMIN POSTS */
 .contact-post {
   margin-bottom: 30px;
-  background-color: white;
+  background-color: #f9f9f9;
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
 
-.contact-post h2 {
-  margin-bottom: 10px;
-  color: #222;
-}
-
-.contact-post p {
-  line-height: 1.6;
-  color: #555;
-}
-
-/* ========================= */
-/* CHATBOT STYLES */
-/* ========================= */
-
-.chatbot-container {
+.chatbot-wrapper {
   position: fixed;
   bottom: 20px;
   right: 20px;
   z-index: 1000;
 }
 
-.chat-toggle-btn {
-  background-color: #007bff;
-  color: white;
+.chatbot-toggle {
+  background-color: #007BFF;
+  color: #fff;
   border: none;
   border-radius: 50%;
   width: 60px;
   height: 60px;
-  font-size: 26px;
+  font-size: 30px;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
-.chat-box {
+.chatbot-window {
   display: flex;
   flex-direction: column;
   position: absolute;
   bottom: 70px;
   right: 0;
   width: 320px;
-  height: 420px;
-  background-color: white;
-  border-radius: 12px;
+  max-height: 400px;
+  background-color: #fff;
+  border-radius: 10px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   overflow: hidden;
 }
 
-.chat-header {
-  background-color: #007bff;
-  color: white;
-  padding: 12px;
+.chatbot-header {
+  background-color: #007BFF;
+  color: #fff;
+  padding: 10px;
   font-weight: bold;
-  text-align: center;
 }
 
-.chat-messages {
+.chatbot-messages {
   flex: 1;
   padding: 10px;
   overflow-y: auto;
-  display: flex;
-  flex-direction: column;
   font-size: 14px;
+  color: #555;
 }
 
-.chat-message {
-  padding: 8px 12px;
-  border-radius: 10px;
-  margin: 6px 0;
-  max-width: 80%;
-  word-wrap: break-word;
-}
-
-.chat-message.bot {
-  background-color: #f1f1f1;
-  align-self: flex-start;
+.chatbot-bot {
   color: #222;
-}
-
-.chat-message.user {
-  background-color: #dcf8c6;
-  align-self: flex-end;
-  color: #007bff;
-}
-
-.chat-typing {
-  font-size: 12px;
-  color: #999;
   margin: 5px 0;
+  background-color: #f1f1f1;
+  padding: 6px 10px;
+  border-radius: 8px;
+  align-self: flex-start;
+  max-width: 80%;
 }
 
-.chat-input-area {
+.chatbot-user {
+  color: #007BFF;
+  margin: 5px 0;
+  background-color: #DCF8C6;
+  padding: 6px 10px;
+  border-radius: 8px;
+  align-self: flex-end;
+  max-width: 80%;
+}
+
+.chatbot-typing {
+  color: #999;
+}
+
+.chatbot-input-area {
   border-top: 1px solid #eee;
   display: flex;
 }
 
-.chat-input-area input {
+.chatbot-input-area input {
   border: none;
   padding: 10px;
   flex: 1;
   outline: none;
-  font-size: 14px;
 }
 
-.chat-input-area button {
+.chatbot-input-area button {
   border: none;
-  background-color: #007bff;
-  color: white;
-  padding: 0 16px;
+  background-color: #007BFF;
+  color: #fff;
+  padding: 0 15px;
   cursor: pointer;
-  font-size: 16px;
-}
-
-.chat-input-area button:hover {
-  background-color: #0056b3;
 }
