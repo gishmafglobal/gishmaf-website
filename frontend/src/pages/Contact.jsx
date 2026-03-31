@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import "../pages/Contact.css";
+import "./pages/Contact.css";
 import logo from "../assets/logo.png";
 
 export default function Contact() {
