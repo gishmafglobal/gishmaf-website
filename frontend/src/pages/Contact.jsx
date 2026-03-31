@@ -158,7 +158,9 @@ export default function Contact() {
   const [loading, setLoading] = useState(false);
   const chatEndRef = useRef(null);
 
-  // Fetch contact posts
+  // ===============================
+  // FETCH CONTACT POSTS
+  // ===============================
   useEffect(() => {
     fetch("https://gishmaf-website.onrender.com/posts")
       .then((res) => res.json())
@@ -168,45 +170,76 @@ export default function Contact() {
       .catch((err) => console.error("Failed to fetch posts:", err));
   }, []);
 
-  // Scroll to bottom on new message
+  // ===============================
+  // AUTO SCROLL CHAT
+  // ===============================
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, chatOpen]);
 
-  // Send message
+  // ===============================
+  // SEND MESSAGE FUNCTION
+  // ===============================
   const sendMessage = async () => {
     const trimmedInput = input.trim();
-    if (!trimmedInput) return;
+    if (!trimmedInput || loading) return;
 
     const userMessage = { sender: "user", text: trimmedInput };
+
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setLoading(true);
 
     try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: trimmedInput }),
-      });
+      const response = await fetch(
+        "https://gishmaf-website-1.onrender.com/api/chat",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ message: trimmedInput }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Server error");
+      }
 
       const data = await response.json();
-      const botReply = data?.message || "Sorry, the AI didn't respond. Try again.";
-      setMessages((prev) => [...prev, { sender: "bot", text: botReply }]);
+
+      // Support both possible backend keys
+      const botReply =
+        data.message ||
+        data.reply ||
+        "Sorry, I couldn't respond. Please try again.";
+
+      // Simulate typing delay
+      setTimeout(() => {
+        setMessages((prev) => [
+          ...prev,
+          { sender: "bot", text: botReply },
+        ]);
+        setLoading(false);
+      }, 1000);
+
     } catch (error) {
-      console.error("Chatbot fetch error:", error);
-      setMessages((prev) => [
-        ...prev,
-        { sender: "bot", text: "Sorry, something went wrong. Please try again." },
-      ]);
-    } finally {
-      setLoading(false);
+      console.error("Chat error:", error);
+
+      setTimeout(() => {
+        setMessages((prev) => [
+          ...prev,
+          { sender: "bot", text: "Sorry, something went wrong. Please try again." },
+        ]);
+        setLoading(false);
+      }, 1000);
     }
   };
 
   return (
     <div className="contact-page">
-      {/* Header */}
+
+      {/* HEADER */}
       <div className="contact-header">
         <img src={logo} alt="Gishmaf Logo" className="logo" />
         <h1>Contact Gishmaf Global Concept</h1>
@@ -215,7 +248,7 @@ export default function Contact() {
         </p>
       </div>
 
-      {/* Intro */}
+      {/* INTRO */}
       <div className="contact-content">
         <p>
           Gishmaf Global Concept is a vision-driven platform dedicated to empowering individuals and organizations worldwide.
@@ -225,13 +258,26 @@ export default function Contact() {
         </p>
       </div>
 
-      {/* Contact Buttons */}
+      {/* CONTACT BUTTONS */}
       <div className="contact-buttons">
-        <a href="mailto:gishmafglobal@gmail.com" className="contact-btn email-btn">📧 Email Us</a>
-        <a href="https://wa.me/19378072552" target="_blank" rel="noopener noreferrer" className="contact-btn whatsapp-btn">💬 WhatsApp / Text</a>
+        <a
+          href="mailto:gishmafglobal@gmail.com"
+          className="contact-btn email-btn"
+        >
+          📧 Email Us
+        </a>
+
+        <a
+          href="https://wa.me/19378072552"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="contact-btn whatsapp-btn"
+        >
+          💬 WhatsApp / Text
+        </a>
       </div>
 
-      {/* Admin Posts */}
+      {/* ADMIN POSTS */}
       {posts.length > 0 && (
         <div className="contact-content posts">
           {posts.map((p) => (
@@ -243,34 +289,58 @@ export default function Contact() {
         </div>
       )}
 
-      {/* Chatbot */}
-      <button className="chatbot-button" onClick={() => setChatOpen(!chatOpen)}>💬</button>
+      {/* CHATBOT BUTTON */}
+      <button
+        className="chatbot-button"
+        onClick={() => setChatOpen(!chatOpen)}
+      >
+        💬
+      </button>
 
+      {/* CHATBOT WINDOW */}
       {chatOpen && (
         <div className="chatbot-window">
-          <div className="chatbot-header">Chat with Gishmaf</div>
+
+          <div className="chatbot-header">
+            Chat with Gishmaf
+          </div>
+
           <div className="chatbot-messages">
             {messages.map((m, idx) => (
               <p
                 key={idx}
-                className={m.sender === "bot" ? "chatbot-message-bot" : "chatbot-message-user"}
+                className={
+                  m.sender === "bot"
+                    ? "chatbot-message-bot"
+                    : "chatbot-message-user"
+                }
               >
                 {m.text}
               </p>
             ))}
-            {loading && <p className="chatbot-loading">Typing...</p>}
+
+            {loading && (
+              <p className="chatbot-message-bot chatbot-loading">
+                Typing...
+              </p>
+            )}
+
             <div ref={chatEndRef}></div>
           </div>
+
           <div className="chatbot-input">
             <input
               type="text"
               placeholder="Type your message..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") sendMessage(); }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") sendMessage();
+              }}
             />
             <button onClick={sendMessage}>➤</button>
           </div>
+
         </div>
       )}
     </div>
