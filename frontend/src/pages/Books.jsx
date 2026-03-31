@@ -223,10 +223,9 @@
 
 
 
+
 import { useState, useEffect } from "react";
 import "./books.css";
-import book1Img from "../assets/images/book1.jpg";
-import book2Img from "../assets/images/book2.jpg";
 
 const API_URL =
   process.env.REACT_APP_API_URL ||
@@ -235,14 +234,14 @@ const API_URL =
 // Pre-populated fake reviews for trust
 const FAKE_REVIEWS = {
   book1: [
-    { email: "alice@yandex.com", rating: 5, comment: "Absolutely loved this book! A must-read." },
-    { email: "john@gmail.com", rating: 5, comment: "Incredible story, really inspiring!" },
-    { email: "emma@yahoo.com", rating: 5, comment: "Couldn't put it down. Highly recommended." },
+    { email: "alice@gmail.com", rating: 5, comment: "Absolutely loved this book! A must-read." },
+    { email: "john@yahoo.com", rating: 5, comment: "Incredible story, really inspiring!" },
+    { email: "emma@outlook.com", rating: 5, comment: "Couldn't put it down. Highly recommended." },
   ],
   book2: [
-    { email: "mike@outlook.com", rating: 5, comment: "This book changed my perspective completely." },
-    { email: "sarah@londa.com", rating: 5, comment: "Amazing writing, very touching story." },
-    { email: "lucas@co.uk", rating: 5, comment: "Five stars! I feel connected to the journey." },
+    { email: "mike@yandex.com", rating: 5, comment: "This book changed my perspective completely." },
+    { email: "sarah@outlook.com", rating: 5, comment: "Amazing writing, very touching story." },
+    { email: "lucas@hotmail.com", rating: 5, comment: "Five stars! I feel connected to the journey." },
   ],
 };
 
@@ -254,9 +253,10 @@ export default function Books() {
   const [myBooks, setMyBooks] = useState([]);
   const [reviewForm, setReviewForm] = useState({ rating: 5, comment: "" });
 
+  // Use public folder images to avoid import issues
   const books = [
-    { id: "book1", title: "Escape from the Street", image: book1Img },
-    { id: "book2", title: "A Lonely Life Survivor", image: book2Img },
+    { id: "book1", title: "Escape from the Street", image: "/images/book1.jpg" },
+    { id: "book2", title: "A Lonely Life Survivor", image: "/images/book2.jpg" },
   ];
 
   // -------------------- Fetch Reviews --------------------
