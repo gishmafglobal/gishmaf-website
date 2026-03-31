@@ -11,6 +11,7 @@ export default function Contact() {
   const [loading, setLoading] = useState(false);
   const chatEndRef = useRef(null);
 
+  // Fetch contact posts from backend
   useEffect(() => {
     fetch("http://gishmaf-website.onrender.com/posts")
       .then(res => res.json())
@@ -18,40 +19,45 @@ export default function Contact() {
       .catch(err => console.error("Failed to fetch posts:", err));
   }, []);
 
-  // Scroll to bottom on new message
+  // Scroll to bottom when messages update
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, chatOpen]);
 
+  // Send message to backend
   const sendMessage = async () => {
-    if (!input.trim()) return;
-    const userMessage = { sender: "user", text: input };
+    const trimmedInput = input.trim();
+    if (!trimmedInput) return;
+
+    const userMessage = { sender: "user", text: trimmedInput };
     setMessages(prev => [...prev, userMessage]);
     setInput("");
     setLoading(true);
 
     try {
+      const openAIMessages = [
+        { role: "system", content: "You are a professional assistant for Gishmaf Global Concept." },
+        ...messages.map(m => ({
+          role: m.sender === "user" ? "user" : "assistant",
+          content: m.text
+        })),
+        { role: "user", content: trimmedInput }
+      ];
+
+      console.log("Sending messages to backend:", openAIMessages);
+
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: [
-            { role: "system", content: "You are a professional assistant for Gishmaf Global Concept." },
-            ...messages.map(m => ({ role: m.sender === "user" ? "user" : "assistant", content: m.text })),
-            { role: "user", content: input }
-          ]
-        })
+        body: JSON.stringify({ messages: openAIMessages })
       });
 
       const data = await response.json();
 
-      if (data.error) {
-        setMessages(prev => [...prev, { sender: "bot", text: data.error }]);
-      } else {
-        setMessages(prev => [...prev, { sender: "bot", text: data.message || "No response from AI." }]);
-      }
+      const botReply = data?.message || data?.error || "Sorry, the AI didn't respond. Try again.";
+      setMessages(prev => [...prev, { sender: "bot", text: botReply }]);
     } catch (error) {
-      console.error(error);
+      console.error("Chatbot fetch error:", error);
       setMessages(prev => [...prev, { sender: "bot", text: "Sorry, something went wrong. Please try again." }]);
     } finally {
       setLoading(false);
@@ -60,7 +66,6 @@ export default function Contact() {
 
   return (
     <div style={{ fontFamily: "Arial, Helvetica, sans-serif", padding: "20px", maxWidth: "1200px", margin: "auto" }}>
-
       {/* HEADER */}
       <div style={{ textAlign: "center", marginBottom: "40px" }}>
         <img src={logo} alt="Gishmaf Logo" style={{ width: "80px", marginBottom: "10px" }} />
