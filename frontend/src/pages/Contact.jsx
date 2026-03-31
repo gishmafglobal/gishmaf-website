@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import logo from "../assets/logo.png";
-import "./Contact.css"; // ✅ Correct relative path
+import "./contact.css"; // ✅ Correct relative path
 
 export default function Contact() {
   const [posts, setPosts] = useState([]);
