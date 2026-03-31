@@ -43,7 +43,8 @@ app.use("/api/books", require("./routes/books"));
 // ===============================
 // CHATBOT ROUTE
 // ===============================
-app.use("/api/chat", require("./routes/chatbot"));
+const chatbotRoute = require("./routes/chatbot");
+app.use("/api/chat", chatbotRoute);
 
 // ===============================
 // HEALTH CHECK
