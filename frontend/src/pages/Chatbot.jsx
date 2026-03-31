@@ -1,71 +1,158 @@
-import { useState } from "react";
-import "./chatbot.css";
+import { useState, useRef, useEffect } from "react";
 
-export default function Chatbot() {
-  const [open, setOpen] = useState(false);
+export default function Chatbox() {
+  const [chatOpen, setChatOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { sender: "bot", text: "Hi 👋 Welcome to Gishmaf! What skill are you interested in?" }
+    { sender: "bot", text: "Hi! How can we assist you today?" }
   ]);
   const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const chatEndRef = useRef(null);
 
-  const handleSend = () => {
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const sendMessage = async () => {
     if (!input.trim()) return;
 
-    const userMessage = { sender: "user", text: input };
+    const newUserMessage = { sender: "user", text: input };
+    const updatedMessages = [...messages, newUserMessage];
 
-    // SIMPLE AI RESPONSE (you can upgrade later)
-    const botReply = {
-      sender: "bot",
-      text: getBotResponse(input)
-    };
-
-    setMessages([...messages, userMessage, botReply]);
+    setMessages(updatedMessages);
     setInput("");
-  };
+    setLoading(true);
 
-  const getBotResponse = (text) => {
-    text = text.toLowerCase();
+    try {
+      const formattedMessages = [
+        {
+          role: "system",
+          content: "You are a professional assistant for Gishmaf Global Concept."
+        },
+        ...updatedMessages.map(msg => ({
+          role: msg.sender === "user" ? "user" : "assistant",
+          content: msg.text
+        }))
+      ];
 
-    if (text.includes("tech")) return "Great choice! Our Tech Skills program covers coding, AI, and web development.";
-    if (text.includes("music")) return "Awesome 🎵 We offer piano, guitar, drums and more.";
-    if (text.includes("business")) return "Our entrepreneurship program helps you build real income streams.";
-    if (text.includes("price")) return "Pricing depends on the course. Would you like me to connect you with an advisor?";
-    
-    return "That’s interesting! Tell me more or click a skill above to get started.";
+      const response = await fetch("https://your-backend-url.onrender.com/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ messages: formattedMessages })
+      });
+
+      if (!response.ok) {
+        throw new Error("Server error");
+      }
+
+      const data = await response.json();
+
+      setMessages(prev => [
+        ...prev,
+        { sender: "bot", text: data.message }
+      ]);
+
+    } catch (error) {
+      console.error("Chat error:", error);
+
+      setMessages(prev => [
+        ...prev,
+        { sender: "bot", text: "Sorry, something went wrong. Please try again." }
+      ]);
+    }
+
+    setLoading(false);
   };
 
   return (
-    <>
-      {/* CHAT BUTTON */}
-      <div className="chat-button" onClick={() => setOpen(!open)}>
+    <div style={{ position: "fixed", bottom: "20px", right: "20px" }}>
+      <button
+        onClick={() => setChatOpen(!chatOpen)}
+        style={{
+          width: "60px",
+          height: "60px",
+          borderRadius: "50%",
+          background: "#007BFF",
+          color: "#fff",
+          border: "none",
+          fontSize: "24px",
+          cursor: "pointer"
+        }}
+      >
         💬
-      </div>
+      </button>
 
-      {/* CHAT WINDOW */}
-      {open && (
-        <div className="chat-window">
-          <div className="chat-header">
-            Gishmaf AI Assistant
+      {chatOpen && (
+        <div
+          style={{
+            width: "320px",
+            height: "420px",
+            background: "#fff",
+            borderRadius: "10px",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+            display: "flex",
+            flexDirection: "column",
+            marginTop: "10px"
+          }}
+        >
+          <div style={{ padding: "10px", background: "#007BFF", color: "#fff" }}>
+            Chat with Gishmaf
           </div>
 
-          <div className="chat-body">
-            {messages.map((msg, i) => (
-              <div key={i} className={`chat-msg ${msg.sender}`}>
-                {msg.text}
+          <div style={{ flex: 1, overflowY: "auto", padding: "10px" }}>
+            {messages.map((msg, index) => (
+              <div
+                key={index}
+                style={{
+                  marginBottom: "8px",
+                  textAlign: msg.sender === "user" ? "right" : "left"
+                }}
+              >
+                <span
+                  style={{
+                    display: "inline-block",
+                    padding: "8px 12px",
+                    borderRadius: "8px",
+                    background:
+                      msg.sender === "user" ? "#DCF8C6" : "#f1f1f1"
+                  }}
+                >
+                  {msg.text}
+                </span>
               </div>
             ))}
+
+            {loading && <p>Typing...</p>}
+
+            <div ref={chatEndRef}></div>
           </div>
 
-          <div className="chat-input">
+          <div style={{ display: "flex", borderTop: "1px solid #eee" }}>
             <input
               value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask something..."
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && sendMessage()}
+              placeholder="Type your message..."
+              style={{ flex: 1, border: "none", padding: "10px" }}
             />
-            <button onClick={handleSend}>Send</button>
+
+            <button
+              onClick={sendMessage}
+              style={{
+                background: "#007BFF",
+                color: "#fff",
+                border: "none",
+                padding: "0 15px",
+                cursor: "pointer"
+              }}
+            >
+              ➤
+            </button>
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
