@@ -1,6 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { blogPosts } from "../data/blogData";
-import { Helmet } from "react-helmet";
 
 export default function BlogPost() {
   const { id } = useParams();
