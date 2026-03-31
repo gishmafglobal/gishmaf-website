@@ -3,7 +3,11 @@ const express = require("express");
 const router = express.Router();
 const OpenAI = require("openai");
 
-// Configure OpenAI client
+// Ensure OpenAI key exists before creating client
+if (!process.env.OPENAI_API_KEY) {
+  console.error("❌ OpenAI API key missing in .env");
+}
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -12,13 +16,16 @@ const openai = new OpenAI({
 router.post("/", async (req, res) => {
   const { messages } = req.body;
 
+  // Validate request body
   if (!messages || !Array.isArray(messages) || messages.length === 0) {
     return res.status(400).json({ error: "Messages array is required and cannot be empty." });
   }
 
+  // Extra safety: check API key before making request
   if (!process.env.OPENAI_API_KEY) {
-    console.error("❌ OpenAI API key not found.");
-    return res.status(500).json({ error: "OpenAI API key is not configured on the server." });
+    return res.status(500).json({
+      error: "OpenAI API key is not configured. Contact admin.",
+    });
   }
 
   try {
@@ -29,15 +36,26 @@ router.post("/", async (req, res) => {
       max_tokens: 300,
     });
 
-    const botMessage =
-      completion?.choices?.[0]?.message?.content?.trim() ||
-      "Sorry, I couldn't generate a response.";
+    const botMessage = completion?.choices?.[0]?.message?.content?.trim();
+
+    // Ensure we always send a message back
+    if (!botMessage) {
+      console.warn("⚠️ OpenAI returned empty response:", completion);
+      return res.json({
+        message: "Sorry, the AI couldn't generate a response. Please try again.",
+      });
+    }
 
     res.json({ message: botMessage });
 
   } catch (error) {
+    // Detailed logging for debugging
     console.error("❌ Chatbot error:", error?.response?.data || error.message || error);
-    res.status(500).json({ error: "Something went wrong communicating with AI." });
+
+    // Friendly frontend message
+    res.status(500).json({
+      message: "Sorry, something went wrong while contacting AI. Please try again later.",
+    });
   }
 });
 
