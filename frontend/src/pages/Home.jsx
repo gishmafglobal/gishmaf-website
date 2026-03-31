@@ -1,18 +1,7 @@
-// import Hero from "../components/Hero";
-// import CardGrid from "../components/CardGrid";
-
-// export default function Home() {
-//   return (
-//     <>
-//       <Hero />
-//       <CardGrid />
-//     </>
-//   );
-// }
-
 
 import Hero from "../components/Hero";
 import CardGrid from "../components/CardGrid";
+import { Helmet } from "react-helmet";
 
 export default function Home() {
   return (

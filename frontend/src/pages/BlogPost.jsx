@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { blogPosts } from "../data/blogData";
+import { Helmet } from "react-helmet";
 
 export default function BlogPost() {
   const { id } = useParams();
@@ -12,16 +13,24 @@ export default function BlogPost() {
   }
 
   return (
-    <section style={{ padding: "40px", maxWidth: "800px", margin: "0 auto" }}>
-      <button onClick={() => navigate("/blog")}>
-        ← Back to Blog
-      </button>
+    <>
+      {/* 🔥 SEO */}
+      <Helmet>
+        <title>{post.title} | Gishmaf Blog</title>
+        <meta name="description" content={post.content.substring(0, 150)} />
+      </Helmet>
 
-      <h1 style={{ marginTop: "20px" }}>{post.title}</h1>
+      <section style={{ padding: "40px", maxWidth: "800px", margin: "0 auto" }}>
+        <button onClick={() => navigate("/blog")}>
+          ← Back to Blog
+        </button>
 
-      <p style={{ marginTop: "20px", lineHeight: "1.8", whiteSpace: "pre-line" }}>
-        {post.content}
-      </p>
-    </section>
+        <h1 style={{ marginTop: "20px" }}>{post.title}</h1>
+
+        <p style={{ marginTop: "20px", lineHeight: "1.8", whiteSpace: "pre-line" }}>
+          {post.content}
+        </p>
+      </section>
+    </>
   );
 }
