@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import "./chatbox.css"; // Make sure you create this CSS file
+// import "./chatbox.css"; 
 
 
 export default function Chatbox() {
