@@ -1,130 +1,9 @@
-
-
-// const express = require("express");
-// const router = express.Router();
-// const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-// const PremiumUser = require("../models/PremiumUser");
-// const BookOrder = require("../models/BookOrder");
-// const nodemailer = require("nodemailer");
-
-// const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-// // ===============================
-// // EMAIL SETUP
-// // ===============================
-// const transporter = nodemailer.createTransport({
-//   service: "gmail",
-//   auth: {
-//     user: process.env.EMAIL_USER,
-//     pass: process.env.EMAIL_PASS,
-//   },
-// });
-
-// // ===============================
-// // SEND EMAIL FUNCTION
-// // ===============================
-// const sendEmail = async (to, subject, text) => {
-//   await transporter.sendMail({
-//     from: `"Gishmaf" <${process.env.EMAIL_USER}>`,
-//     to,
-//     subject,
-//     text,
-//   });
-// };
-
-// router.post("/stripe", async (req, res) => {
-//   const sig = req.headers["stripe-signature"];
-//   let event;
-
-//   try {
-//     event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
-//   } catch (err) {
-//     console.error("❌ Webhook signature failed:", err.message);
-//     return res.status(400).send(`Webhook Error: ${err.message}`);
-//   }
-
-//   try {
-//     if (event.type === "checkout.session.completed") {
-//       const session = event.data.object;
-
-//       // ===============================
-//       // PREMIUM
-//       // ===============================
-//       if (session.mode === "subscription") {
-//         const email = session.customer_email;
-
-//         const expiresAt = new Date();
-//         expiresAt.setDate(expiresAt.getDate() + 30);
-
-//         await PremiumUser.findOneAndUpdate(
-//           { email },
-//           {
-//             email,
-//             status: "active",
-//             stripeCustomerId: session.customer,
-//             stripeSubscriptionId: session.subscription,
-//             expiresAt,
-//           },
-//           { upsert: true, new: true }
-//         );
-
-//         await sendEmail(
-//           email,
-//           "Premium Activated 🎉",
-//           "Your premium subscription is now active."
-//         );
-
-//         console.log("✅ Premium activated:", email);
-//       }
-
-//       // ===============================
-//       // BOOK PURCHASE
-//       // ===============================
-//       if (session.mode === "payment") {
-//         const email = session.customer_email;
-//         const bookId = session.metadata.bookId;
-
-//         await BookOrder.create({
-//           email,
-//           bookId,
-//           paymentIntentId: session.payment_intent,
-//         });
-
-//         const downloadLink = `${process.env.FRONTEND_URL}/book-success?session_id=${session.id}`;
-
-//         // 📧 USER EMAIL
-//         await sendEmail(
-//           email,
-//           "Your Book is Ready 📘",
-//           `Thank you for your purchase!\n\nDownload your book here:\n${downloadLink}`
-//         );
-
-//         // 📧 ADMIN EMAIL
-//         await sendEmail(
-//           process.env.EMAIL_USER,
-//           "New Book Purchase 💰",
-//           `User ${email} purchased ${bookId}`
-//         );
-
-//         console.log("📘 Book purchased:", email, bookId);
-//       }
-//     }
-
-//     res.json({ received: true });
-//   } catch (error) {
-//     console.error("🔥 Webhook error:", error);
-//     res.status(500).json({ error: "Webhook failed" });
-//   }
-// });
-
-// module.exports = router;
-
-
 const express = require("express");
 const router = express.Router();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const nodemailer = require("nodemailer");
 const path = require("path");
+const crypto = require("crypto");
 const BookOrder = require("../models/BookOrder");
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -183,11 +62,20 @@ router.post("/", async (req, res) => {
 
         if (!book) return res.json({ received: true });
 
+        // Generate secure token
+        const downloadToken = crypto.randomBytes(32).toString("hex");
+
+        // Expiry 30 days
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + 30);
+
         // Save purchase in DB
         await BookOrder.create({
           email,
           bookId,
           paymentIntentId: session.payment_intent,
+          downloadToken,
+          expiryDate,
         });
 
         const filePath = path.join(
@@ -196,20 +84,26 @@ router.post("/", async (req, res) => {
           book.pdf
         );
 
-        // Send email WITH PDF
+        // Send email WITH PDF + LINK
         await transporter.sendMail({
           from: `"Gishmaf" <${process.env.EMAIL_USER}>`,
           to: email,
           subject: "Your Book Purchase Was Successful 📘",
-          text: `Hello,
+          html: `
+            <h2>Thank you for purchasing "${book.title}"</h2>
 
-Thank you for purchasing "${book.title}".
+            <p>Your book is attached to this email.</p>
 
-Your book is attached to this email.
+            <p>You can also re-download using the link below:</p>
 
-Enjoy reading!
+            <a href="${process.env.FRONTEND_URL}/download/${downloadToken}"
+               style="padding:10px 20px;background:black;color:white;
+               text-decoration:none;border-radius:6px;">
+               Download Again
+            </a>
 
-Gishmaf`,
+            <p>Access expires on: ${expiryDate.toDateString()}</p>
+          `,
           attachments: [
             {
               filename: book.pdf,
