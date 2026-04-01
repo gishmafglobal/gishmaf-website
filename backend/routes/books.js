@@ -10,27 +10,48 @@ const BOOKS = {
   book2: { title: "A Lonely Life Survivor", pdf: "Lonely Suvivor.pdf" },
 };
 
-// Email transporter
+// ================= EMAIL SETUP =================
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
 });
 
-// ---------------- CREATE BOOK ORDER ----------------
+// ================= TEST DOWNLOAD ROUTE (FOR FRONTEND TESTING) =================
+router.get("/test-book/:bookId", (req, res) => {
+  const { bookId } = req.params;
+  const book = BOOKS[bookId];
+
+  if (!book) {
+    return res.status(404).json({ error: "Book not found" });
+  }
+
+  const filePath = path.join(__dirname, "../public/pdfs", book.pdf);
+
+  res.download(filePath, book.pdf, (err) => {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ error: "Failed to download book" });
+    }
+  });
+});
+
+// ================= CREATE BOOK ORDER =================
 router.post("/purchase", async (req, res) => {
   try {
     const { email, bookId } = req.body;
     const book = BOOKS[bookId];
     if (!book) return res.status(400).json({ error: "Invalid book" });
 
-    // Save in DB
-    const order = await BookOrder.create({ email, bookId });
+    await BookOrder.create({ email, bookId });
 
-    // Generate download token (24h expiry)
-    const token = jwt.sign({ email, bookId }, process.env.JWT_SECRET, { expiresIn: "24h" });
+    const token = jwt.sign(
+      { email, bookId },
+      process.env.JWT_SECRET,
+      { expiresIn: "24h" }
+    );
+
     const downloadUrl = `${process.env.BACKEND_URL}/api/books/download/${token}`;
 
-    // Send email
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: email,
@@ -50,7 +71,7 @@ router.post("/purchase", async (req, res) => {
   }
 });
 
-// ---------------- DOWNLOAD BOOK ----------------
+// ================= SECURE DOWNLOAD =================
 router.get("/download/:token", async (req, res) => {
   try {
     const decoded = jwt.verify(req.params.token, process.env.JWT_SECRET);
@@ -64,20 +85,17 @@ router.get("/download/:token", async (req, res) => {
   }
 });
 
-// ---------------- FETCH MY BOOKS ----------------
+// ================= FETCH MY BOOKS =================
 router.get("/my-books", async (req, res) => {
   try {
     const { email } = req.query;
     if (!email) return res.json({ success: false, books: [] });
 
     const orders = await BookOrder.find({ email });
+
     const books = orders.map((o) => ({
       bookId: o.bookId,
-      bookUrl: `${process.env.BACKEND_URL}/api/books/download/${jwt.sign(
-        { email, bookId: o.bookId },
-        process.env.JWT_SECRET,
-        { expiresIn: "24h" }
-      )}`,
+      bookUrl: `${process.env.BACKEND_URL}/api/books/test-book/${o.bookId}`,
     }));
 
     res.json({ success: true, books });

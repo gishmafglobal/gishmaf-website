@@ -8,10 +8,20 @@ const FAKE_REVIEWS = {
   book1: [
     { email: "alice@gmail.com", rating: 5, comment: "Absolutely loved this book!" },
     { email: "john@yahoo.com", rating: 5, comment: "Incredible story!" },
+    { email: "sarah@yahoo.com", rating: 4, comment: "its a wow for me!" },
+    { email: "usman@yandex.com", rating: 4, comment: "its too long man,but quite ok though" },
+    { email: "steve@outlook.com", rating: 5, comment: "good one bro!" },
+    { email: "ayomide@hotmail.com", rating: 5, comment: "This is deep!" },
   ],
   book2: [
     { email: "mike@yandex.com", rating: 5, comment: "Changed my perspective!" },
     { email: "sarah@outlook.com", rating: 5, comment: "Very touching story." },
+    { email: "dola@yahoo.com", rating: 5, comment: "quite Incredible!" },
+    { email: "djmanny@gmail.com", rating: 3, comment: "nice one !" },
+    { email: "anny@doha.com", rating: 5, comment: "lovely!" },
+    { email: "tatu@yandex.com", rating: 4, comment: "hmm!" },
+    { email: "youjin@qq.com", rating: 5, comment: "this is really recommendable!" },
+    { email: "joy@gmailo.com", rating: 5, comment: "really nice and a good book!" },
   ],
 };
 
