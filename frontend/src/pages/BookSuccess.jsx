@@ -21,7 +21,7 @@ const FAKE_REVIEWS = {
     { email: "anny@doha.com", rating: 5, comment: "lovely!" },
     { email: "tatu@yandex.com", rating: 4, comment: "hmm!" },
     { email: "youjin@qq.com", rating: 5, comment: "this is really recommendable!" },
-    { email: "joy@gmailo.com", rating: 5, comment: "really nice and a good book!" },
+    { email: "joy@gmail.com", rating: 5, comment: "really nice and a good book!" },
   ],
 };
 
