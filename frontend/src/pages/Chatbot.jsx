@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import "./chatbox.css"; // Make sure you create this CSS file
 
+
 export default function Chatbox() {
   const [chatOpen, setChatOpen] = useState(false);
   const [messages, setMessages] = useState([
