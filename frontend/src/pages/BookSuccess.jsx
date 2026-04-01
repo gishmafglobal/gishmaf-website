@@ -1,61 +1,71 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 
-const API_URL = process.env.REACT_APP_API_URL;
+const API_URL = "https://gishmaf-website-1.onrender.com";
+
+// Fake reviews for testing
+const FAKE_REVIEWS = {
+  book1: [
+    { email: "alice@gmail.com", rating: 5, comment: "Absolutely loved this book!" },
+    { email: "john@yahoo.com", rating: 5, comment: "Incredible story!" },
+  ],
+  book2: [
+    { email: "mike@yandex.com", rating: 5, comment: "Changed my perspective!" },
+    { email: "sarah@outlook.com", rating: 5, comment: "Very touching story." },
+  ],
+};
 
 export default function BookSuccess() {
   const [searchParams] = useSearchParams();
-  const sessionId = searchParams.get("session_id");
+  const sessionId = searchParams.get("session_id"); // Optional for testing
 
   const [downloadUrl, setDownloadUrl] = useState(null);
   const [bookId, setBookId] = useState(null);
   const [reviews, setReviews] = useState([]);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(localStorage.getItem("email") || "");
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
 
+  // For testing, bypass Stripe and call backend directly
   useEffect(() => {
-    const verify = async () => {
-      const res = await fetch(
-        `${API_URL}/api/books/verify-book-session?session_id=${sessionId}`
-      );
-      const data = await res.json();
-      if (data.success) {
-        setDownloadUrl(data.downloadUrl);
-        setBookId(data.bookId);
-        setEmail(data.email);
-      }
-    };
-    verify();
-  }, [sessionId]);
+    const urlParamsBookId = searchParams.get("bookId"); // optional
+    const id = urlParamsBookId || "book1";
+    setBookId(id);
 
+    if (email && id) {
+      fetch(`${API_URL}/api/books/purchase`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, bookId: id }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.downloadUrl) setDownloadUrl(data.downloadUrl);
+        })
+        .catch((err) => console.error(err));
+    }
+  }, [email, searchParams]);
+
+  // Load fake reviews
   useEffect(() => {
-    if (!bookId) return;
-    fetch(`${API_URL}/api/reviews/${bookId}`)
-      .then((res) => res.json())
-      .then(setReviews);
+    if (bookId) setReviews(FAKE_REVIEWS[bookId] || []);
   }, [bookId]);
 
   const submitReview = async () => {
-    await fetch(`${API_URL}/api/reviews/${bookId}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, rating, comment }),
-    });
+    if (!comment || !email) return alert("Enter comment and email");
+
+    // Optional: save to real backend later
+    setReviews((prev) => [...prev, { email, rating, comment }]);
     setComment("");
-    const updated = await fetch(`${API_URL}/api/reviews/${bookId}`).then((r) =>
-      r.json()
-    );
-    setReviews(updated);
   };
 
-  if (!downloadUrl) return <h2>Verifying payment...</h2>;
+  if (!downloadUrl) return <h2>Preparing your book...</h2>;
 
   return (
     <div style={{ padding: 40, maxWidth: 900, margin: "auto" }}>
       <h1>🎉 Purchase Successful</h1>
 
-      <a href={downloadUrl}>
+      <a href={downloadUrl} target="_blank" rel="noreferrer">
         <button style={{
           background: "#FFA41C",
           padding: "12px 25px",
@@ -69,7 +79,6 @@ export default function BookSuccess() {
 
       <h2 style={{ marginTop: 40 }}>Customer Reviews</h2>
 
-      {/* Review Form */}
       <div style={{ marginBottom: 30 }}>
         <div>
           {[1,2,3,4,5].map(n => (
@@ -109,21 +118,13 @@ export default function BookSuccess() {
         </button>
       </div>
 
-      {/* Reviews List */}
       {reviews.map((r, i) => (
         <div
           key={i}
-          style={{
-            borderBottom: "1px solid #ddd",
-            padding: "15px 0"
-          }}
+          style={{ borderBottom: "1px solid #ddd", padding: "15px 0" }}
         >
-          <div style={{ fontWeight: "bold" }}>
-            {r.email} {r.verified && "✅ Verified Purchase"}
-          </div>
-          <div style={{ color: "#FFA41C" }}>
-            {"★".repeat(r.rating)}
-          </div>
+          <div style={{ fontWeight: "bold" }}>{r.email}</div>
+          <div style={{ color: "#FFA41C" }}>{"★".repeat(r.rating)}</div>
           <p>{r.comment}</p>
         </div>
       ))}
