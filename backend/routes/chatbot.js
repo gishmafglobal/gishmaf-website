@@ -35,7 +35,6 @@
 // });
 
 // module.exports = router;
-
 require("dotenv").config();
 const express = require("express");
 const router = express.Router();
@@ -45,14 +44,14 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// POST /api/chat
 router.post("/", async (req, res) => {
   try {
-    let userMessage;
-
-    // Accept BOTH formats
+    // Accept either { message: "..." } or { messages: [...] }
+    let userMessage = "";
     if (req.body.message) {
       userMessage = req.body.message;
-    } else if (req.body.messages && Array.isArray(req.body.messages)) {
+    } else if (Array.isArray(req.body.messages) && req.body.messages.length) {
       userMessage = req.body.messages[req.body.messages.length - 1].content;
     }
 
@@ -60,6 +59,7 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: "No message provided" });
     }
 
+    // Create AI completion
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
@@ -77,14 +77,16 @@ router.post("/", async (req, res) => {
       max_tokens: 300,
     });
 
-    const reply = completion.choices[0].message.content;
+    const reply = completion.choices[0]?.message?.content || "Sorry, I couldn't generate a response.";
 
-    return res.json({ message: reply });
+    // Simulate a slight delay (for typing effect)
+    setTimeout(() => {
+      res.json({ message: reply });
+    }, 800); // 0.8s delay
+
   } catch (error) {
     console.error("🔥 CHAT ERROR:", error);
-    return res.status(500).json({
-      error: "AI service temporarily unavailable",
-    });
+    res.status(500).json({ error: "AI service temporarily unavailable" });
   }
 });
 
