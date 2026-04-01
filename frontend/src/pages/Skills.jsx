@@ -1,9 +1,7 @@
-
-
 import { useState } from "react";
 import logo from "../assets/logo.png";
 import "./skills.css";
-import Chatbot from "./Chatbot"; // ✅ IMPORT CHATBOT
+import Chatbox from "./Chatbox"; // ✅ Corrected import: matches Chatbox.jsx
 
 const skills = [
   {
@@ -46,26 +44,22 @@ export default function Skills() {
     message: ""
   });
 
-  // ✅ TRACK USER ACTIONS
   const trackEvent = (action, skill) => {
     console.log(`[TRACKING]: ${action} - ${skill}`);
   };
 
-  // ✅ HANDLE FORM SUBMIT
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!selectedSkill) return;
 
     const message = `Hello, my name is ${formData.name}. I am interested in ${selectedSkill.title}. ${formData.message}`;
-
     trackEvent("Form Submitted", selectedSkill.title);
 
-    // WhatsApp redirect
     window.open(
       `https://wa.me/19378072552?text=${encodeURIComponent(message)}`,
       "_blank"
     );
 
-    // Reset form + close modal
     setFormData({ name: "", email: "", message: "" });
     setSelectedSkill(null);
   };
@@ -152,8 +146,8 @@ export default function Skills() {
         </div>
       )}
 
-      {/* ✅ CHATBOT ADDED HERE */}
-      <Chatbot />
+      {/* ✅ CHATBOT / CHATBOX COMPONENT */}
+      <Chatbox />
     </div>
   );
 }
