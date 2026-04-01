@@ -88,132 +88,159 @@ export default function Books() {
   }, []);
 
   return (
-    <div style={{
-      padding: "50px 20px",
-      maxWidth: "1200px",
-      margin: "auto",
-      fontFamily: "Arial, sans-serif"
-    }}>
-      <h1 style={{
+    <div
+    style={{
+      backgroundColor: "#f4f6f9",
+      minHeight: "100vh",
+      padding: "60px 20px",
+      fontFamily: "Segoe UI, sans-serif",
+      color: "#111",
+    }}
+  >
+    <h1
+      style={{
         textAlign: "center",
-        marginBottom: 40,
-        fontSize: "36px"
-      }}>
-        📚 Our Books
-      </h1>
+        fontSize: "42px",
+        fontWeight: "700",
+        marginBottom: "50px",
+        color: "#111",
+      }}
+    >
+      📚 Our Books
+    </h1>
 
-      <div style={{
-        display: "flex",
-        gap: 10,
-        justifyContent: "center",
-        marginBottom: 40,
-        flexWrap: "wrap"
-      }}>
-        <input
-          type="email"
-          placeholder="Enter your email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+        gap: "40px",
+        maxWidth: "1200px",
+        margin: "0 auto",
+      }}
+    >
+      {books.map((book) => (
+        <div
+          key={book.id}
           style={{
-            padding: 12,
-            width: 280,
-            borderRadius: 8,
-            border: "1px solid #ddd"
-          }}
-        />
-        <button
-          onClick={fetchMyBooks}
-          style={{
-            padding: "12px 20px",
-            borderRadius: 8,
-            border: "none",
-            background: "#232F3E",
-            color: "#fff",
-            cursor: "pointer"
+            background: "#ffffff",
+            borderRadius: "20px",
+            padding: "25px",
+            boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
+            transition: "0.3s ease",
           }}
         >
-          View My Library
-        </button>
-      </div>
+          <img
+            src={book.image}
+            alt={book.title}
+            style={{
+              width: "100%",
+              height: "300px",
+              objectFit: "cover",
+              borderRadius: "15px",
+              marginBottom: "20px",
+            }}
+          />
 
-      {myBooks.length > 0 && (
-        <div style={{ marginBottom: 40 }}>
-          <h2>📥 My Purchased Books</h2>
-          {myBooks.map((b, i) => (
-            <div key={i} style={{ marginBottom: 8 }}>
-              <a href={b.bookUrl} target="_blank" rel="noreferrer">
-                Download {b.bookId}
-              </a>
+          <h2
+            style={{
+              fontSize: "22px",
+              fontWeight: "600",
+              marginBottom: "10px",
+              color: "#111",
+            }}
+          >
+            {book.title}
+          </h2>
+
+          <div
+            style={{
+              fontSize: "16px",
+              fontWeight: "600",
+              color: "#f59e0b",
+              marginBottom: "15px",
+            }}
+          >
+            ⭐ {ratings[book.id]?.average} (
+            {ratings[book.id]?.count} reviews)
+          </div>
+
+          <button
+            disabled={loadingBook === book.id}
+            onClick={() => handlePurchase(book.id)}
+            style={{
+              width: "100%",
+              padding: "14px",
+              borderRadius: "10px",
+              border: "none",
+              backgroundColor: "#111",
+              color: "#fff",
+              fontSize: "15px",
+              fontWeight: "600",
+              cursor: "pointer",
+              marginBottom: "25px",
+            }}
+          >
+            {loadingBook === book.id ? "Processing..." : "Buy Book"}
+          </button>
+
+          <h4
+            style={{
+              fontSize: "18px",
+              fontWeight: "600",
+              marginBottom: "15px",
+              color: "#111",
+            }}
+          >
+            Reviews
+          </h4>
+
+          {(reviews[book.id] || []).map((r, index) => (
+            <div
+              key={index}
+              style={{
+                backgroundColor: "#f9fafb",
+                padding: "15px",
+                borderRadius: "12px",
+                marginBottom: "12px",
+                border: "1px solid #e5e7eb",
+              }}
+            >
+              <div
+                style={{
+                  fontWeight: "600",
+                  fontSize: "14px",
+                  marginBottom: "5px",
+                  color: "#111",
+                }}
+              >
+                {maskEmail(r.email)}
+              </div>
+
+              <div
+                style={{
+                  color: "#f59e0b",
+                  fontWeight: "600",
+                  marginBottom: "6px",
+                }}
+              >
+                ⭐ {r.rating}
+              </div>
+
+              <p
+                style={{
+                  fontSize: "14px",
+                  color: "#333",
+                  lineHeight: "1.6",
+                  margin: 0,
+                }}
+              >
+                {r.comment}
+              </p>
             </div>
           ))}
         </div>
-      )}
-
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-        gap: 30
-      }}>
-        {books.map((book) => (
-          <div key={book.id} style={{
-            background: "#fff",
-            borderRadius: 16,
-            padding: 20,
-            boxShadow: "0 8px 25px rgba(0,0,0,0.08)",
-            transition: "0.3s"
-          }}>
-            <img
-              src={book.image}
-              alt={book.title}
-              style={{
-                width: "100%",
-                height: 300,
-                objectFit: "cover",
-                borderRadius: 12,
-                marginBottom: 15
-              }}
-            />
-
-            <h3 style={{ marginBottom: 8 }}>{book.title}</h3>
-
-            <p style={{ color: "#FFA41C", fontWeight: "bold" }}>
-              ⭐ {ratings[book.id]?.average} ({ratings[book.id]?.count} reviews)
-            </p>
-
-            <button
-              disabled={loadingBook === book.id}
-              onClick={() => handlePurchase(book.id)}
-              style={{
-                marginTop: 10,
-                padding: "12px",
-                width: "100%",
-                borderRadius: 8,
-                border: "none",
-                background: "#FFA41C",
-                fontWeight: "bold",
-                cursor: "pointer"
-              }}
-            >
-              {loadingBook === book.id ? "Processing..." : "Buy Book"}
-            </button>
-
-            <div style={{ marginTop: 20 }}>
-              {(reviews[book.id] || []).map((r, idx) => (
-                <div key={idx} style={{
-                  marginBottom: 12,
-                  padding: 12,
-                  background: "#f8f8f8",
-                  borderRadius: 8
-                }}>
-                  <strong>{maskEmail(r.email)}</strong>
-                  <div style={{ color: "#FFA41C" }}>⭐ {r.rating}</div>
-                  <p style={{ margin: 0 }}>{r.comment}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
+      ))}
     </div>
-  );
+  </div>
+);
 }
