@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from "react";
-import "./chatbox.css";
 
 export default function Chatbox() {
   const [chatOpen, setChatOpen] = useState(false);
@@ -10,7 +9,7 @@ export default function Chatbox() {
   const [loading, setLoading] = useState(false);
   const chatEndRef = useRef(null);
 
-  // Auto-scroll to bottom
+  // Auto-scroll
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
@@ -23,7 +22,7 @@ export default function Chatbox() {
     setInput("");
     setLoading(true);
 
-    // Add temporary bot typing bubble
+    // Typing bubble
     const typingId = Date.now();
     setMessages((prev) => [...prev, { sender: "bot", text: "Typing...", id: typingId }]);
 
@@ -62,34 +61,93 @@ export default function Chatbox() {
     }
   };
 
+  // Inline styles
+  const styles = {
+    container: { position: "fixed", bottom: "20px", right: "20px", zIndex: 1000 },
+    toggleButton: {
+      width: "60px",
+      height: "60px",
+      borderRadius: "50%",
+      background: "#007BFF",
+      color: "#fff",
+      border: "none",
+      fontSize: "28px",
+      cursor: "pointer",
+      boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+    },
+    window: {
+      width: "320px",
+      height: "420px",
+      background: "#fff",
+      borderRadius: "10px",
+      boxShadow: "0 4px 16px rgba(0,0,0,0.25)",
+      display: "flex",
+      flexDirection: "column",
+      marginTop: "10px",
+      overflow: "hidden",
+      fontFamily: "Arial, sans-serif",
+    },
+    header: { padding: "10px", background: "#007BFF", color: "#fff", fontWeight: "bold" },
+    messages: { flex: 1, padding: "10px", overflowY: "auto", background: "#f9f9f9" },
+    message: (isUser) => ({
+      marginBottom: "8px",
+      textAlign: isUser ? "right" : "left",
+    }),
+    bubble: (isUser) => ({
+      display: "inline-block",
+      padding: "8px 12px",
+      borderRadius: "12px",
+      background: isUser ? "#DCF8C6" : "#f1f1f1",
+      maxWidth: "80%",
+      wordWrap: "break-word",
+    }),
+    inputArea: {
+      display: "flex",
+      borderTop: "1px solid #eee",
+      padding: "5px",
+    },
+    input: { flex: 1, padding: "10px", border: "1px solid #ccc", borderRadius: "6px" },
+    sendButton: {
+      marginLeft: "5px",
+      padding: "0 15px",
+      border: "none",
+      background: "#007BFF",
+      color: "#fff",
+      borderRadius: "6px",
+      cursor: "pointer",
+    },
+  };
+
   return (
-    <div className="chatbox-container">
-      <button className="chatbox-toggle" onClick={() => setChatOpen(!chatOpen)}>💬</button>
+    <div style={styles.container}>
+      <button style={styles.toggleButton} onClick={() => setChatOpen(!chatOpen)}>💬</button>
 
       {chatOpen && (
-        <div className="chatbox-window">
-          <div className="chatbox-header">Chat with Gishmaf</div>
-          <div className="chatbox-messages">
+        <div style={styles.window}>
+          <div style={styles.header}>Chat with Gishmaf</div>
+          <div style={styles.messages}>
             {messages.map((msg, idx) => (
-              <div
-                key={idx}
-                className={`chatbox-msg ${msg.sender === "user" ? "user" : "bot"}`}
-              >
-                {msg.text}
+              <div key={idx} style={styles.message(msg.sender === "user")}>
+                <span style={styles.bubble(msg.sender === "user")}>{msg.text}</span>
               </div>
             ))}
-            {loading && <div className="chatbox-msg bot">Typing...</div>}
+            {loading && (
+              <div style={styles.message(false)}>
+                <span style={styles.bubble(false)}>Typing...</span>
+              </div>
+            )}
             <div ref={chatEndRef}></div>
           </div>
-          <div className="chatbox-input-area">
+          <div style={styles.inputArea}>
             <input
               type="text"
               placeholder="Type your message..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+              style={styles.input}
             />
-            <button onClick={sendMessage}>➤</button>
+            <button onClick={sendMessage} style={styles.sendButton}>➤</button>
           </div>
         </div>
       )}
