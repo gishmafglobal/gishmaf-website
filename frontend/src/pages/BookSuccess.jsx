@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import "./BookSuccess.css";
 
 const API_URL = "https://gishmaf-website-1.onrender.com";
 
@@ -28,167 +27,139 @@ const FAKE_REVIEWS = {
 
 export default function BookSuccess() {
   const [searchParams] = useSearchParams();
-  const sessionId = searchParams.get("session_id"); // Optional for testing
-
   const [downloadUrl, setDownloadUrl] = useState(null);
   const [bookId, setBookId] = useState(null);
   const [reviews, setReviews] = useState([]);
-  const [email, setEmail] = useState(localStorage.getItem("email") || "");
+  const [email, setEmail] = useState(localStorage.getItem("email") || "test@gmail.com");
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
 
-  // For testing, bypass Stripe and call backend directly
   useEffect(() => {
-    const urlParamsBookId = searchParams.get("bookId"); // optional
-    const id = urlParamsBookId || "book1";
+    const id = searchParams.get("bookId") || "book1";
     setBookId(id);
 
-    if (email && id) {
-      fetch(`${API_URL}/api/books/purchase`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, bookId: id }),
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.downloadUrl) setDownloadUrl(data.downloadUrl);
-        })
-        .catch((err) => console.error(err));
-    }
-  }, [email, searchParams]);
+    // Direct test download (safe fallback)
+    setDownloadUrl(`${API_URL}/api/books/test-book/${id}`);
+  }, [searchParams]);
 
-  // Load fake reviews
   useEffect(() => {
     if (bookId) setReviews(FAKE_REVIEWS[bookId] || []);
   }, [bookId]);
 
-  const submitReview = async () => {
-    if (!comment || !email) return alert("Enter comment and email");
+  const submitReview = () => {
+    if (!comment) return alert("Enter comment");
 
-    // Optional: save to real backend later
     setReviews((prev) => [...prev, { email, rating, comment }]);
     setComment("");
   };
 
-  if (!downloadUrl) return <h2>Preparing your book...</h2>;
+  if (!downloadUrl)
+    return (
+      <h2 style={{ textAlign: "center", marginTop: 80 }}>
+        Preparing your book...
+      </h2>
+    );
 
-//   return (
-//     <div style={{ padding: 40, maxWidth: 900, margin: "auto" }}>
-//       <h1>🎉 Purchase Successful</h1>
+  return (
+    <div
+      style={{
+        padding: "40px 20px",
+        maxWidth: "900px",
+        margin: "auto",
+        fontFamily: "Arial, sans-serif",
+      }}
+    >
+      <h1 style={{ textAlign: "center", marginBottom: 30 }}>
+        🎉 Purchase Successful
+      </h1>
 
-//       <a href={downloadUrl} target="_blank" rel="noreferrer">
-//         <button style={{
-//           background: "#FFA41C",
-//           padding: "12px 25px",
-//           border: "none",
-//           fontWeight: "bold",
-//           cursor: "pointer"
-//         }}>
-//           📥 Download Book
-//         </button>
-//       </a>
-
-//       <h2 style={{ marginTop: 40 }}>Customer Reviews</h2>
-
-//       <div style={{ marginBottom: 30 }}>
-//         <div>
-//           {[1,2,3,4,5].map(n => (
-//             <span
-//               key={n}
-//               onClick={() => setRating(n)}
-//               style={{
-//                 fontSize: 28,
-//                 cursor: "pointer",
-//                 color: n <= rating ? "#FFA41C" : "#ccc",
-//                 transition: "0.3s"
-//               }}
-//             >
-//               ★
-//             </span>
-//           ))}
-//         </div>
-
-//         <textarea
-//           placeholder="Write your review"
-//           value={comment}
-//           onChange={(e) => setComment(e.target.value)}
-//           style={{ width: "100%", padding: 10, marginTop: 10 }}
-//         />
-
-//         <button
-//           onClick={submitReview}
-//           style={{
-//             marginTop: 10,
-//             background: "#232F3E",
-//             color: "white",
-//             padding: "10px 20px",
-//             border: "none"
-//           }}
-//         >
-//           Submit Review
-//         </button>
-//       </div>
-
-//       {reviews.map((r, i) => (
-//         <div
-//           key={i}
-//           style={{ borderBottom: "1px solid #ddd", padding: "15px 0" }}
-//         >
-//           <div style={{ fontWeight: "bold" }}>{r.email}</div>
-//           <div style={{ color: "#FFA41C" }}>{"★".repeat(r.rating)}</div>
-//           <p>{r.comment}</p>
-//         </div>
-//       ))}
-//     </div>
-//   );
-
-return (
-  <div className="book-success-container">
-    <h1 className="success-title">🎉 Purchase Successful</h1>
-
-    <a href={downloadUrl} target="_blank" rel="noreferrer">
-      <button className="download-btn">
-        📥 Download Book
-      </button>
-    </a>
-
-    <h2 className="reviews-title">Customer Reviews</h2>
-
-    <div className="review-form">
-      <div className="stars">
-        {[1,2,3,4,5].map(n => (
-          <span
-            key={n}
-            onClick={() => setRating(n)}
-            style={{ color: n <= rating ? "#FFA41C" : "#ccc" }}
+      <div style={{ textAlign: "center", marginBottom: 50 }}>
+        <a href={downloadUrl} target="_blank" rel="noreferrer">
+          <button
+            style={{
+              background: "#FFA41C",
+              padding: "14px 35px",
+              border: "none",
+              fontWeight: "bold",
+              cursor: "pointer",
+              borderRadius: "8px",
+              fontSize: "16px",
+              boxShadow: "0 4px 10px rgba(0,0,0,0.15)",
+            }}
           >
-            ★
-          </span>
-        ))}
+            📥 Download Book
+          </button>
+        </a>
       </div>
 
-      <textarea
-        className="review-textarea"
-        placeholder="Write your review"
-        value={comment}
-        onChange={(e) => setComment(e.target.value)}
-      />
+      <h2 style={{ marginBottom: 20 }}>Customer Reviews</h2>
 
-      <button
-        className="submit-review-btn"
-        onClick={submitReview}
+      <div
+        style={{
+          marginBottom: 40,
+          padding: 20,
+          borderRadius: 10,
+          background: "#f9f9f9",
+        }}
       >
-        Submit Review
-      </button>
-    </div>
+        <div style={{ fontSize: 28, marginBottom: 10 }}>
+          {[1, 2, 3, 4, 5].map((n) => (
+            <span
+              key={n}
+              onClick={() => setRating(n)}
+              style={{
+                cursor: "pointer",
+                color: n <= rating ? "#FFA41C" : "#ccc",
+              }}
+            >
+              ★
+            </span>
+          ))}
+        </div>
 
-    {reviews.map((r, i) => (
-      <div key={i} className="review-card">
-        <div className="review-email">{r.email}</div>
-        <div className="review-stars">{"★".repeat(r.rating)}</div>
-        <p className="review-comment">{r.comment}</p>
+        <textarea
+          placeholder="Write your review"
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          style={{
+            width: "100%",
+            padding: 12,
+            borderRadius: 8,
+            border: "1px solid #ddd",
+            marginBottom: 10,
+          }}
+        />
+
+        <button
+          onClick={submitReview}
+          style={{
+            background: "#232F3E",
+            color: "white",
+            padding: "10px 20px",
+            border: "none",
+            borderRadius: 6,
+            cursor: "pointer",
+          }}
+        >
+          Submit Review
+        </button>
       </div>
-    ))}
-  </div>
-);
+
+      {reviews.map((r, i) => (
+        <div
+          key={i}
+          style={{
+            padding: "20px 0",
+            borderBottom: "1px solid #eee",
+          }}
+        >
+          <div style={{ fontWeight: "bold" }}>{r.email}</div>
+          <div style={{ color: "#FFA41C", margin: "5px 0" }}>
+            {"★".repeat(r.rating)}
+          </div>
+          <p style={{ margin: 0 }}>{r.comment}</p>
+        </div>
+      ))}
+    </div>
+  );
 }
