@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-// import "./chatbox.css"; 
-
+import "./chatbox.css";
 
 export default function Chatbox() {
   const [chatOpen, setChatOpen] = useState(false);
