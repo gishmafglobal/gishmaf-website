@@ -115,13 +115,123 @@
 import { useEffect, useState, useRef } from "react";
 import logo from "../assets/logo.png";
 
+// Chatbox Component
+function Chatbox() {
+  const [messages, setMessages] = useState([
+    { sender: "bot", text: "Hi! I’m your music assistant 🎵" },
+  ]);
+  const [input, setInput] = useState("");
+  const [typing, setTyping] = useState(false);
+
+  const addMessage = (sender, text) => {
+    setMessages((prev) => [...prev, { sender, text }]);
+  };
+
+  // Simulated AI typing animation
+  const sendMessage = async () => {
+    if (!input.trim()) return;
+    addMessage("user", input);
+    setInput("");
+    setTyping(true);
+
+    // Fake delay for progressive bubble typing
+    let reply = `🎶 You asked: "${input}". Here's a suggestion: Try exploring Afrobeat or Jazz playlists!`;
+    let display = "";
+    for (let i = 0; i < reply.length; i++) {
+      display += reply[i];
+      setMessages((prev) => [
+        ...prev.slice(0, prev.length - 1),
+        { sender: "bot", text: display },
+      ]);
+      await new Promise((r) => setTimeout(r, 15)); // 15ms per char
+    }
+
+    setTyping(false);
+  };
+
+  return (
+    <div
+      style={{
+        maxWidth: "380px",
+        width: "90%",
+        margin: "30px auto",
+        background: "#fff",
+        borderRadius: "12px",
+        boxShadow: "0 6px 18px rgba(0,0,0,0.15)",
+        display: "flex",
+        flexDirection: "column",
+        padding: "15px",
+      }}
+    >
+      <div
+        style={{
+          flex: 1,
+          maxHeight: "400px",
+          overflowY: "auto",
+          display: "flex",
+          flexDirection: "column",
+          gap: "10px",
+        }}
+      >
+        {messages.map((msg, idx) => (
+          <div
+            key={idx}
+            style={{
+              alignSelf: msg.sender === "user" ? "flex-end" : "flex-start",
+              background: msg.sender === "user" ? "#4285f4" : "#e0e0e0",
+              color: msg.sender === "user" ? "#fff" : "#000",
+              padding: "8px 12px",
+              borderRadius: "20px",
+              maxWidth: "80%",
+              wordBreak: "break-word",
+            }}
+          >
+            {msg.text}
+          </div>
+        ))}
+        {typing && <div style={{ color: "#888" }}>Typing...</div>}
+      </div>
+      <div style={{ display: "flex", marginTop: "10px" }}>
+        <input
+          type="text"
+          placeholder="Ask me about music..."
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+          style={{
+            flex: 1,
+            padding: "10px 15px",
+            borderRadius: "20px",
+            border: "1px solid #ccc",
+            outline: "none",
+          }}
+        />
+        <button
+          onClick={sendMessage}
+          style={{
+            marginLeft: "8px",
+            padding: "10px 18px",
+            borderRadius: "20px",
+            border: "none",
+            background: "#4285f4",
+            color: "#fff",
+            cursor: "pointer",
+            fontWeight: "bold",
+          }}
+        >
+          Send
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function Music() {
   const [songs, setSongs] = useState([]);
   const [term, setTerm] = useState("afrobeat");
   const [currentTrackIndex, setCurrentTrackIndex] = useState(null);
   const audioRef = useRef(null);
 
-  // Fetch music from iTunes API
   const searchMusic = async (searchTerm) => {
     if (!searchTerm) return;
     const res = await fetch(
@@ -148,7 +258,7 @@ export default function Music() {
     if (currentTrackIndex !== null && currentTrackIndex < songs.length - 1) {
       playTrack(currentTrackIndex + 1);
     } else {
-      // Loop current track if last track reached
+      // Loop current track
       if (audioRef.current) {
         audioRef.current.currentTime = 0;
         audioRef.current.play();
@@ -175,18 +285,27 @@ export default function Music() {
   };
 
   const formatTime = (ms) => {
-    if (!ms) return "0:30"; // fallback
+    if (!ms) return "0:30";
     const minutes = Math.floor(ms / 60000);
     const seconds = Math.floor((ms % 60000) / 1000);
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
   return (
-    <div style={{ padding: "60px 20px", fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", backgroundColor: "#fafafa", paddingBottom: "120px" }}>
+    <div
+      style={{
+        padding: "60px 20px",
+        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+        backgroundColor: "#fafafa",
+        paddingBottom: "160px",
+      }}
+    >
       {/* HEADER */}
       <div style={{ textAlign: "center", marginBottom: "40px" }}>
         <img src={logo} alt="logo" style={{ width: "90px", marginBottom: "15px" }} />
-        <h1 style={{ fontSize: "2.2rem", color: "#222", marginBottom: "8px" }}>Gishmaf Music Workshop & Streaming</h1>
+        <h1 style={{ fontSize: "2.2rem", color: "#222", marginBottom: "8px" }}>
+          Gishmaf Music Workshop & Streaming
+        </h1>
         <p style={{ color: "#555", fontSize: "1.1rem" }}>Learn music. Understand music. Stream music.</p>
       </div>
 
@@ -204,9 +323,7 @@ export default function Music() {
             borderRadius: "30px",
             border: "1px solid #ccc",
             outline: "none",
-            boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
             fontSize: "1rem",
-            transition: "all 0.3s",
           }}
           onKeyDown={(e) => e.key === "Enter" && searchMusic(term)}
         />
@@ -217,15 +334,11 @@ export default function Music() {
             marginLeft: "10px",
             borderRadius: "30px",
             border: "none",
-            background: "linear-gradient(90deg, #1a73e8, #4285f4)",
+            background: "#4285f4",
             color: "#fff",
             fontWeight: "bold",
             cursor: "pointer",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-            transition: "transform 0.2s",
           }}
-          onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
-          onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
         >
           Search & Stream
         </button>
@@ -251,12 +364,9 @@ export default function Music() {
               textAlign: "center",
               backgroundColor: "#fff",
               boxShadow: "0 4px 10px rgba(0,0,0,0.08)",
-              transition: "transform 0.2s, border 0.2s",
               cursor: "pointer",
             }}
             onClick={() => playTrack(index)}
-            onMouseOver={(e) => (e.currentTarget.style.transform = "translateY(-5px)")}
-            onMouseOut={(e) => (e.currentTarget.style.transform = "translateY(0)")}
           >
             <img
               src={song.artworkUrl100.replace("100x100bb", "300x300bb")}
@@ -273,21 +383,26 @@ export default function Music() {
         ))}
       </div>
 
+      {/* CHATBOX */}
+      <Chatbox />
+
       {/* NOW PLAYING BAR */}
       {currentTrackIndex !== null && (
-        <div style={{
-          position: "fixed",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          background: "#1a73e8",
-          color: "#fff",
-          display: "flex",
-          alignItems: "center",
-          padding: "10px 20px",
-          boxShadow: "0 -4px 10px rgba(0,0,0,0.2)",
-          zIndex: 1000,
-        }}>
+        <div
+          style={{
+            position: "fixed",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            background: "#1a73e8",
+            color: "#fff",
+            display: "flex",
+            alignItems: "center",
+            padding: "10px 20px",
+            boxShadow: "0 -4px 10px rgba(0,0,0,0.2)",
+            zIndex: 1000,
+          }}
+        >
           <div style={{ flex: 1 }}>
             <strong>{songs[currentTrackIndex].trackName}</strong> – {songs[currentTrackIndex].artistName}
           </div>
