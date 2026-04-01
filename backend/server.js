@@ -77,14 +77,28 @@
 
 require("dotenv").config();
 const express = require("express");
-const router = express.Router();
 const OpenAI = require("openai");
 
+// Create app
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Middleware to parse JSON
+app.use(express.json());
+
+// Check OPENAI_API_KEY early
+if (!process.env.OPENAI_API_KEY) {
+  console.error("❌ OPENAI_API_KEY missing!");
+  process.exit(1); // exit so deployment fails loudly
+}
+
+// Initialize OpenAI
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-router.post("/", async (req, res) => {
+// Chat endpoint
+app.post("/chat", async (req, res) => {
   try {
     let userMessage;
 
@@ -99,19 +113,14 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: "No message provided" });
     }
 
-    // Check API Key
-    if (!process.env.OPENAI_API_KEY) {
-      console.error("❌ OPENAI_API_KEY missing!");
-      return res.status(500).json({ error: "Server misconfigured" });
-    }
-
     // Call OpenAI
     const completion = await openai.chat.completions.create({
-      model: "gpt-4.1-mini", // universally available model
+      model: "gpt-4.1-mini",
       messages: [
         {
           role: "system",
-          content: "You are a friendly professional assistant for Gishmaf Global Concept.",
+          content:
+            "You are a friendly professional assistant for Gishmaf Global Concept.",
         },
         {
           role: "user",
@@ -122,8 +131,9 @@ router.post("/", async (req, res) => {
       max_tokens: 300,
     });
 
-    const reply = completion?.choices?.[0]?.message?.content || 
-                  "Sorry, I couldn't generate a response.";
+    const reply =
+      completion?.choices?.[0]?.message?.content ||
+      "Sorry, I couldn't generate a response.";
 
     res.json({ message: reply });
   } catch (error) {
@@ -135,4 +145,12 @@ router.post("/", async (req, res) => {
   }
 });
 
-module.exports = router;
+// Health check
+app.get("/", (req, res) => {
+  res.send("Server is running ✅");
+});
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}`);
+});
