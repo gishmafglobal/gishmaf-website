@@ -1,155 +1,95 @@
 import { useState, useRef, useEffect } from "react";
+import "./chatbox.css"; // Make sure you create this CSS file
 
 export default function Chatbox() {
   const [chatOpen, setChatOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { sender: "bot", text: "Hi! How can we assist you today?" }
+    { sender: "bot", text: "Hi! How can we assist you today?" },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const chatEndRef = useRef(null);
 
+  // Auto-scroll to bottom
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, loading]);
 
   const sendMessage = async () => {
     if (!input.trim()) return;
 
-    const newUserMessage = { sender: "user", text: input };
-    const updatedMessages = [...messages, newUserMessage];
-
-    setMessages(updatedMessages);
+    const userMsg = { sender: "user", text: input };
+    setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setLoading(true);
 
-    try {
-      const formattedMessages = [
-        {
-          role: "system",
-          content: "You are a professional assistant for Gishmaf Global Concept."
-        },
-        ...updatedMessages.map(msg => ({
-          role: msg.sender === "user" ? "user" : "assistant",
-          content: msg.text
-        }))
-      ];
+    // Add temporary bot typing bubble
+    const typingId = Date.now();
+    setMessages((prev) => [...prev, { sender: "bot", text: "Typing...", id: typingId }]);
 
-      const response = await fetch("https://your-backend-url.onrender.com/api/chat", {
+    try {
+      const response = await fetch("https://gishmaf-website-1.onrender.com/api/chat", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ messages: formattedMessages })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: [
+            { role: "system", content: "You are a professional assistant for Gishmaf Global Concept." },
+            ...messages.map((m) => ({
+              role: m.sender === "user" ? "user" : "assistant",
+              content: m.text,
+            })),
+            { role: "user", content: input },
+          ],
+        }),
       });
 
-      if (!response.ok) {
-        throw new Error("Server error");
-      }
-
       const data = await response.json();
+      const botReply = data?.message || "Sorry, I couldn't respond.";
 
-      setMessages(prev => [
-        ...prev,
-        { sender: "bot", text: data.message }
-      ]);
+      // Remove typing bubble
+      setMessages((prev) => prev.filter((m) => m.id !== typingId));
 
-    } catch (error) {
-      console.error("Chat error:", error);
-
-      setMessages(prev => [
-        ...prev,
-        { sender: "bot", text: "Sorry, something went wrong. Please try again." }
-      ]);
+      // Add bot reply with slight delay
+      setTimeout(() => {
+        setMessages((prev) => [...prev, { sender: "bot", text: botReply }]);
+        setLoading(false);
+      }, 800);
+    } catch (err) {
+      console.error("Chat error:", err);
+      setMessages((prev) => prev.filter((m) => m.id !== typingId));
+      setMessages((prev) => [...prev, { sender: "bot", text: "Sorry, something went wrong." }]);
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
-    <div style={{ position: "fixed", bottom: "20px", right: "20px" }}>
-      <button
-        onClick={() => setChatOpen(!chatOpen)}
-        style={{
-          width: "60px",
-          height: "60px",
-          borderRadius: "50%",
-          background: "#007BFF",
-          color: "#fff",
-          border: "none",
-          fontSize: "24px",
-          cursor: "pointer"
-        }}
-      >
-        💬
-      </button>
+    <div className="chatbox-container">
+      <button className="chatbox-toggle" onClick={() => setChatOpen(!chatOpen)}>💬</button>
 
       {chatOpen && (
-        <div
-          style={{
-            width: "320px",
-            height: "420px",
-            background: "#fff",
-            borderRadius: "10px",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-            display: "flex",
-            flexDirection: "column",
-            marginTop: "10px"
-          }}
-        >
-          <div style={{ padding: "10px", background: "#007BFF", color: "#fff" }}>
-            Chat with Gishmaf
-          </div>
-
-          <div style={{ flex: 1, overflowY: "auto", padding: "10px" }}>
-            {messages.map((msg, index) => (
+        <div className="chatbox-window">
+          <div className="chatbox-header">Chat with Gishmaf</div>
+          <div className="chatbox-messages">
+            {messages.map((msg, idx) => (
               <div
-                key={index}
-                style={{
-                  marginBottom: "8px",
-                  textAlign: msg.sender === "user" ? "right" : "left"
-                }}
+                key={idx}
+                className={`chatbox-msg ${msg.sender === "user" ? "user" : "bot"}`}
               >
-                <span
-                  style={{
-                    display: "inline-block",
-                    padding: "8px 12px",
-                    borderRadius: "8px",
-                    background:
-                      msg.sender === "user" ? "#DCF8C6" : "#f1f1f1"
-                  }}
-                >
-                  {msg.text}
-                </span>
+                {msg.text}
               </div>
             ))}
-
-            {loading && <p>Typing...</p>}
-
+            {loading && <div className="chatbox-msg bot">Typing...</div>}
             <div ref={chatEndRef}></div>
           </div>
-
-          <div style={{ display: "flex", borderTop: "1px solid #eee" }}>
+          <div className="chatbox-input-area">
             <input
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && sendMessage()}
+              type="text"
               placeholder="Type your message..."
-              style={{ flex: 1, border: "none", padding: "10px" }}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
             />
-
-            <button
-              onClick={sendMessage}
-              style={{
-                background: "#007BFF",
-                color: "#fff",
-                border: "none",
-                padding: "0 15px",
-                cursor: "pointer"
-              }}
-            >
-              ➤
-            </button>
+            <button onClick={sendMessage}>➤</button>
           </div>
         </div>
       )}

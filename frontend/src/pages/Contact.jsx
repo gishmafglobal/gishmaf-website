@@ -1,6 +1,7 @@
+
 // import { useEffect, useState, useRef } from "react";
 // import logo from "../assets/logo.png";
-// import "./contact.css"; // ✅ Correct relative path
+// import "./contact.css";
 
 // export default function Contact() {
 //   const [posts, setPosts] = useState([]);
@@ -12,9 +13,11 @@
 //   const [loading, setLoading] = useState(false);
 //   const chatEndRef = useRef(null);
 
-//   // Fetch contact posts
+//   // ===============================
+//   // FETCH CONTACT POSTS
+//   // ===============================
 //   useEffect(() => {
-//     fetch("http://gishmaf-website.onrender.com/posts")
+//     fetch("https://gishmaf-website.onrender.com/posts")
 //       .then((res) => res.json())
 //       .then((data) =>
 //         setPosts(data.filter((p) => p.section === "contact"))
@@ -22,55 +25,76 @@
 //       .catch((err) => console.error("Failed to fetch posts:", err));
 //   }, []);
 
-//   // Scroll to bottom
+//   // ===============================
+//   // AUTO SCROLL CHAT
+//   // ===============================
 //   useEffect(() => {
 //     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
 //   }, [messages, chatOpen]);
 
-//   // Send message
+//   // ===============================
+//   // SEND MESSAGE FUNCTION
+//   // ===============================
 //   const sendMessage = async () => {
 //     const trimmedInput = input.trim();
-//     if (!trimmedInput) return;
+//     if (!trimmedInput || loading) return;
 
 //     const userMessage = { sender: "user", text: trimmedInput };
+
 //     setMessages((prev) => [...prev, userMessage]);
 //     setInput("");
 //     setLoading(true);
 
 //     try {
-//       const openAIMessages = [
-//         { role: "system", content: "You are a professional assistant for Gishmaf Global Concept." },
-//         ...messages.map((m) => ({
-//           role: m.sender === "user" ? "user" : "assistant",
-//           content: m.text,
-//         })),
-//         { role: "user", content: trimmedInput },
-//       ];
+//       const response = await fetch(
+//         "https://gishmaf-website-1.onrender.com/api/chat",
+//         {
+//           method: "POST",
+//           headers: {
+//             "Content-Type": "application/json",
+//           },
+//           body: JSON.stringify({ message: trimmedInput }),
+//         }
+//       );
 
-//       const response = await fetch("/api/chat", {
-//         method: "POST",
-//         headers: { "Content-Type": "application/json" },
-//         body: JSON.stringify({ messages: openAIMessages }),
-//       });
+//       if (!response.ok) {
+//         throw new Error("Server error");
+//       }
 
 //       const data = await response.json();
+
+//       // Support both possible backend keys
 //       const botReply =
-//         data?.message || data?.error || "Sorry, the AI didn't respond. Try again.";
-//       setMessages((prev) => [...prev, { sender: "bot", text: botReply }]);
+//         data.message ||
+//         data.reply ||
+//         "Sorry, I couldn't respond. Please try again.";
+
+//       // Simulate typing delay
+//       setTimeout(() => {
+//         setMessages((prev) => [
+//           ...prev,
+//           { sender: "bot", text: botReply },
+//         ]);
+//         setLoading(false);
+//       }, 1000);
+
 //     } catch (error) {
-//       console.error("Chatbot fetch error:", error);
-//       setMessages((prev) => [
-//         ...prev,
-//         { sender: "bot", text: "Sorry, something went wrong. Please try again." },
-//       ]);
-//     } finally {
-//       setLoading(false);
+//       console.error("Chat error:", error);
+
+//       setTimeout(() => {
+//         setMessages((prev) => [
+//           ...prev,
+//           { sender: "bot", text: "Sorry, something went wrong. Please try again." },
+//         ]);
+//         setLoading(false);
+//       }, 1000);
 //     }
 //   };
 
 //   return (
 //     <div className="contact-page">
-//       {/* Header */}
+
+//       {/* HEADER */}
 //       <div className="contact-header">
 //         <img src={logo} alt="Gishmaf Logo" className="logo" />
 //         <h1>Contact Gishmaf Global Concept</h1>
@@ -79,7 +103,7 @@
 //         </p>
 //       </div>
 
-//       {/* Intro */}
+//       {/* INTRO */}
 //       <div className="contact-content">
 //         <p>
 //           Gishmaf Global Concept is a vision-driven platform dedicated to empowering individuals and organizations worldwide.
@@ -89,54 +113,89 @@
 //         </p>
 //       </div>
 
-//       {/* Contact Buttons */}
-//       <div className="contact-email">
-//         <h2>Get in Touch</h2>
-//         <a href="mailto:gishmafglobal@gmail.com">📧 Email Us</a>
-//         <br />
-//         <a href="https://wa.me/19378072552" target="_blank" rel="noopener noreferrer">💬 WhatsApp / Text</a>
+//       {/* CONTACT BUTTONS */}
+//       <div className="contact-buttons">
+//         <a
+//           href="mailto:gishmafglobal@gmail.com"
+//           className="contact-btn email-btn"
+//         >
+//           📧 Email Us
+//         </a>
+
+//         <a
+//           href="https://wa.me/19378072552"
+//           target="_blank"
+//           rel="noopener noreferrer"
+//           className="contact-btn whatsapp-btn"
+//         >
+//           💬 WhatsApp / Text
+//         </a>
 //       </div>
 
-//       {/* Admin Posts */}
+//       {/* ADMIN POSTS */}
 //       {posts.length > 0 && (
-//         <div className="contact-content">
+//         <div className="contact-content posts">
 //           {posts.map((p) => (
-//             <div key={p._id} style={{ marginBottom: "30px", backgroundColor: "#f9f9f9", padding: "20px", borderRadius: "10px", boxShadow: "0 2px 6px rgba(0,0,0,0.05)" }}>
-//               <h2 style={{ marginBottom: "10px", color: "#222" }}>{p.title}</h2>
-//               <p style={{ lineHeight: "1.6", color: "#555" }}>{p.content}</p>
+//             <div key={p._id} className="post-card">
+//               <h2>{p.title}</h2>
+//               <p>{p.content}</p>
 //             </div>
 //           ))}
 //         </div>
 //       )}
 
-//       {/* Chatbot */}
-//       <button className="chatbot-button" onClick={() => setChatOpen(!chatOpen)}>💬</button>
+//       {/* CHATBOT BUTTON */}
+//       <button
+//         className="chatbot-button"
+//         onClick={() => setChatOpen(!chatOpen)}
+//       >
+//         💬
+//       </button>
 
+//       {/* CHATBOT WINDOW */}
 //       {chatOpen && (
 //         <div className="chatbot-window">
-//           <div className="chatbot-header">Chat with Gishmaf</div>
+
+//           <div className="chatbot-header">
+//             Chat with Gishmaf
+//           </div>
+
 //           <div className="chatbot-messages">
 //             {messages.map((m, idx) => (
 //               <p
 //                 key={idx}
-//                 className={m.sender === "bot" ? "chatbot-message-bot" : "chatbot-message-user"}
+//                 className={
+//                   m.sender === "bot"
+//                     ? "chatbot-message-bot"
+//                     : "chatbot-message-user"
+//                 }
 //               >
 //                 {m.text}
 //               </p>
 //             ))}
-//             {loading && <p style={{ color: "#999" }}>Typing...</p>}
+
+//             {loading && (
+//               <p className="chatbot-message-bot chatbot-loading">
+//                 Typing...
+//               </p>
+//             )}
+
 //             <div ref={chatEndRef}></div>
 //           </div>
+
 //           <div className="chatbot-input">
 //             <input
 //               type="text"
 //               placeholder="Type your message..."
 //               value={input}
 //               onChange={(e) => setInput(e.target.value)}
-//               onKeyDown={(e) => { if (e.key === "Enter") sendMessage(); }}
+//               onKeyDown={(e) => {
+//                 if (e.key === "Enter") sendMessage();
+//               }}
 //             />
 //             <button onClick={sendMessage}>➤</button>
 //           </div>
+
 //         </div>
 //       )}
 //     </div>
@@ -158,88 +217,66 @@ export default function Contact() {
   const [loading, setLoading] = useState(false);
   const chatEndRef = useRef(null);
 
-  // ===============================
-  // FETCH CONTACT POSTS
-  // ===============================
+  // Fetch contact posts from backend
   useEffect(() => {
-    fetch("https://gishmaf-website.onrender.com/posts")
+    fetch("https://gishmaf-website-1.onrender.com/posts")
       .then((res) => res.json())
-      .then((data) =>
-        setPosts(data.filter((p) => p.section === "contact"))
-      )
+      .then((data) => setPosts(data.filter((p) => p.section === "contact")))
       .catch((err) => console.error("Failed to fetch posts:", err));
   }, []);
 
-  // ===============================
-  // AUTO SCROLL CHAT
-  // ===============================
+  // Scroll to bottom when new message arrives
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, chatOpen]);
 
-  // ===============================
-  // SEND MESSAGE FUNCTION
-  // ===============================
+  // Send user message to backend chatbot
   const sendMessage = async () => {
     const trimmedInput = input.trim();
-    if (!trimmedInput || loading) return;
+    if (!trimmedInput) return;
 
     const userMessage = { sender: "user", text: trimmedInput };
-
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setLoading(true);
 
-    try {
-      const response = await fetch(
-        "https://gishmaf-website-1.onrender.com/api/chat",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ message: trimmedInput }),
-        }
-      );
+    // Add temporary typing message
+    const typingId = Date.now();
+    setMessages((prev) => [...prev, { sender: "bot", text: "Typing...", id: typingId }]);
 
-      if (!response.ok) {
-        throw new Error("Server error");
-      }
+    try {
+      const response = await fetch("https://gishmaf-website-1.onrender.com/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: trimmedInput }),
+      });
 
       const data = await response.json();
+      const botReply = data?.message || "Sorry, I couldn't respond. Please try again.";
 
-      // Support both possible backend keys
-      const botReply =
-        data.message ||
-        data.reply ||
-        "Sorry, I couldn't respond. Please try again.";
+      // Remove typing message
+      setMessages((prev) => prev.filter((msg) => msg.id !== typingId));
 
-      // Simulate typing delay
+      // Delay to simulate real typing
       setTimeout(() => {
-        setMessages((prev) => [
-          ...prev,
-          { sender: "bot", text: botReply },
-        ]);
-        setLoading(false);
-      }, 1000);
-
+        setMessages((prev) => [...prev, { sender: "bot", text: botReply }]);
+      }, 800);
     } catch (error) {
       console.error("Chat error:", error);
 
-      setTimeout(() => {
-        setMessages((prev) => [
-          ...prev,
-          { sender: "bot", text: "Sorry, something went wrong. Please try again." },
-        ]);
-        setLoading(false);
-      }, 1000);
+      setMessages((prev) => prev.filter((msg) => msg.id !== typingId));
+      setMessages((prev) => [
+        ...prev,
+        { sender: "bot", text: "Sorry, something went wrong. Please try again." },
+      ]);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="contact-page">
-
-      {/* HEADER */}
+      {/* Header */}
       <div className="contact-header">
         <img src={logo} alt="Gishmaf Logo" className="logo" />
         <h1>Contact Gishmaf Global Concept</h1>
@@ -248,7 +285,7 @@ export default function Contact() {
         </p>
       </div>
 
-      {/* INTRO */}
+      {/* Intro */}
       <div className="contact-content">
         <p>
           Gishmaf Global Concept is a vision-driven platform dedicated to empowering individuals and organizations worldwide.
@@ -258,26 +295,13 @@ export default function Contact() {
         </p>
       </div>
 
-      {/* CONTACT BUTTONS */}
+      {/* Contact Buttons */}
       <div className="contact-buttons">
-        <a
-          href="mailto:gishmafglobal@gmail.com"
-          className="contact-btn email-btn"
-        >
-          📧 Email Us
-        </a>
-
-        <a
-          href="https://wa.me/19378072552"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="contact-btn whatsapp-btn"
-        >
-          💬 WhatsApp / Text
-        </a>
+        <a href="mailto:gishmafglobal@gmail.com" className="contact-btn email-btn">📧 Email Us</a>
+        <a href="https://wa.me/19378072552" target="_blank" rel="noopener noreferrer" className="contact-btn whatsapp-btn">💬 WhatsApp / Text</a>
       </div>
 
-      {/* ADMIN POSTS */}
+      {/* Admin Posts */}
       {posts.length > 0 && (
         <div className="contact-content posts">
           {posts.map((p) => (
@@ -289,58 +313,35 @@ export default function Contact() {
         </div>
       )}
 
-      {/* CHATBOT BUTTON */}
-      <button
-        className="chatbot-button"
-        onClick={() => setChatOpen(!chatOpen)}
-      >
-        💬
-      </button>
+      {/* Chatbot Toggle Button */}
+      <button className="chatbot-button" onClick={() => setChatOpen(!chatOpen)}>💬</button>
 
-      {/* CHATBOT WINDOW */}
+      {/* Chatbot Window */}
       {chatOpen && (
         <div className="chatbot-window">
-
-          <div className="chatbot-header">
-            Chat with Gishmaf
-          </div>
-
+          <div className="chatbot-header">Chat with Gishmaf</div>
           <div className="chatbot-messages">
             {messages.map((m, idx) => (
               <p
                 key={idx}
-                className={
-                  m.sender === "bot"
-                    ? "chatbot-message-bot"
-                    : "chatbot-message-user"
-                }
+                className={m.sender === "bot" ? "chatbot-message-bot" : "chatbot-message-user"}
               >
                 {m.text}
               </p>
             ))}
-
-            {loading && (
-              <p className="chatbot-message-bot chatbot-loading">
-                Typing...
-              </p>
-            )}
-
+            {loading && <p className="chatbot-loading">Typing...</p>}
             <div ref={chatEndRef}></div>
           </div>
-
           <div className="chatbot-input">
             <input
               type="text"
               placeholder="Type your message..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") sendMessage();
-              }}
+              onKeyDown={(e) => { if (e.key === "Enter") sendMessage(); }}
             />
             <button onClick={sendMessage}>➤</button>
           </div>
-
         </div>
       )}
     </div>
