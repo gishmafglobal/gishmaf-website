@@ -157,86 +157,112 @@ import { loadStripe } from "@stripe/stripe-js";
 const API_URL = import.meta.env.VITE_API_URL || "";
 const STRIPE_PUBLIC_KEY = import.meta.env.VITE_STRIPE_PUBLIC_KEY || "";
 
-// Safe stripe initialization
+console.log("VITE_API_URL:", API_URL);
+console.log("VITE_STRIPE_PUBLIC_KEY:", STRIPE_PUBLIC_KEY);
+
 const stripePromise = STRIPE_PUBLIC_KEY ? loadStripe(STRIPE_PUBLIC_KEY) : null;
 
 const FAKE_REVIEWS = {
   book1: [
-    { email: "alice@gmail.com", rating: 5, comment: "Absolutely loved this book!" },
-    { email: "john@yahoo.com", rating: 5, comment: "Incredible story!" },
+    { email: "alice@gmail.com", rating: 5, comment: "Loved it!" },
+    { email: "john@yahoo.com", rating: 4, comment: "Good read." },
   ],
   book2: [
-    { email: "mike@yandex.com", rating: 5, comment: "Changed my perspective!" },
+    { email: "mike@yandex.com", rating: 5, comment: "Excellent!" },
   ],
 };
 
 export default function Books() {
   const [email, setEmail] = useState(localStorage.getItem("email") || "");
   const [loadingBook, setLoadingBook] = useState(null);
+  const [reviews, setReviews] = useState({});
+  const [ratings, setRatings] = useState({});
 
   const books = [
     { id: "book1", title: "Escape from the Street", image: "/images/book1.jpg" },
     { id: "book2", title: "A Lonely Life Survivor", image: "/images/book2.jpg" },
   ];
 
-  const handlePurchase = async (bookId) => {
-    if (!email.includes("@")) { alert("Enter a valid email"); return; }
-    if (!stripePromise) { alert("Stripe public key missing! Check VITE_STRIPE_PUBLIC_KEY"); console.error("❌ STRIPE_PUBLIC_KEY missing"); return; }
-    if (!API_URL) { alert("API_URL missing! Check VITE_API_URL"); console.error("❌ API_URL missing"); return; }
+  const maskEmail = (e) => {
+    if (!e) return "";
+    const [name, domain] = e.split("@");
+    return name.slice(0, 2) + "****@" + domain;
+  };
 
-    localStorage.setItem("email", email);
+  const handlePurchase = async (bookId) => {
+    if (!email.includes("@")) { alert("Enter valid email"); return; }
+    if (!stripePromise) { alert("Stripe public key missing"); console.error("Stripe key missing!"); return; }
+    if (!API_URL) { alert("API URL missing"); console.error("API URL missing!"); return; }
+
     setLoadingBook(bookId);
+    localStorage.setItem("email", email);
 
     try {
-      console.log("[HANDLE PURCHASE] Sending request to backend for book:", bookId);
-
       const res = await fetch(`${API_URL}/api/books/purchase`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, bookId }),
       });
 
-      const text = await res.text();
-      console.log("[HANDLE PURCHASE] Raw backend response:", text);
-
-      let data;
-      try { data = JSON.parse(text); } 
-      catch(err) { 
-        console.error("❌ Backend returned non-JSON:", text); 
-        alert("Backend response invalid. Check console."); 
-        return; 
+      if (!res.ok) {
+        const text = await res.text();
+        console.error("❌ Backend error:", text);
+        alert("Purchase failed, see console");
+        return;
       }
 
-      if (!data.sessionId) { 
-        console.error("❌ Stripe sessionId missing in backend response", data); 
-        alert("Purchase failed: see console."); 
-        return; 
+      const data = await res.json();
+      if (!data.sessionId) {
+        console.error("❌ No sessionId returned:", data);
+        alert("Purchase failed, see console");
+        return;
       }
 
-      console.log("✅ Redirecting to Stripe checkout session:", data.sessionId);
       const stripe = await stripePromise;
-      await stripe.redirectToCheckout({ sessionId: data.sessionId });
+      const result = await stripe.redirectToCheckout({ sessionId: data.sessionId });
+      if (result.error) console.error("❌ Stripe checkout error:", result.error);
 
     } catch (err) {
-      console.error("[HANDLE PURCHASE ERROR]", err);
-      alert("Purchase failed: see console for details");
+      console.error("❌ Purchase handler error:", err);
+      alert("Purchase failed, see console");
     } finally {
       setLoadingBook(null);
     }
   };
 
+  useEffect(() => {
+    const r = {}, avg = {};
+    for (const b of books) {
+      r[b.id] = FAKE_REVIEWS[b.id] || [];
+      const reviewsList = r[b.id];
+      avg[b.id] = reviewsList.length
+        ? { average: (reviewsList.reduce((a, r) => a + r.rating, 0) / reviewsList.length).toFixed(1), count: reviewsList.length }
+        : { average: "0.0", count: 0 };
+    }
+    setReviews(r);
+    setRatings(avg);
+  }, []);
+
   return (
     <div style={{ padding: "40px", fontFamily: "Segoe UI, sans-serif" }}>
       <h1>📚 Our Books</h1>
-      <input type="email" placeholder="Your email" value={email} onChange={e => setEmail(e.target.value)} />
-      <div style={{ display: "grid", gap: "20px", marginTop: "20px" }}>
+      <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Enter your email" style={{ padding: "10px", width: "300px", marginBottom: "20px" }} />
+      <div style={{ display: "flex", gap: "20px" }}>
         {books.map(book => (
-          <div key={book.id} style={{ border: "1px solid #ccc", padding: "20px" }}>
+          <div key={book.id} style={{ border: "1px solid #ccc", padding: "20px", borderRadius: "10px" }}>
+            <img src={book.image} alt={book.title} style={{ width: "200px", height: "250px", objectFit: "cover" }} />
             <h2>{book.title}</h2>
-            <img src={book.image} style={{ width: "100%", maxHeight: "300px", objectFit: "cover" }} />
-            <button disabled={loadingBook === book.id} onClick={() => handlePurchase(book.id)}>
+            <div>⭐ {ratings[book.id]?.average} ({ratings[book.id]?.count})</div>
+            <button onClick={() => handlePurchase(book.id)} disabled={loadingBook === book.id} style={{ padding: "10px", marginTop: "10px" }}>
               {loadingBook === book.id ? "Processing..." : "Buy Book"}
             </button>
+            <div>
+              {reviews[book.id]?.map((r, i) => (
+                <div key={i}>
+                  {maskEmail(r.email)} - ⭐ {r.rating}: {r.comment}
+                </div>
+              ))}
+            </div>
           </div>
         ))}
       </div>
