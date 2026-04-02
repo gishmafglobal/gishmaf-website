@@ -1,128 +1,31 @@
-
-
-// const express = require("express");
-// const router = express.Router();
-// const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-// const BookOrder = require("../models/BookOrder");
-
-// // ===============================
-// // BOOK CONFIG
-// // ===============================
-// const BOOKS = {
-//   book1: {
-//     title: "Escape from the Street",
-//     price: 400,
-//     pdf: "EFTS BOOK.pdf",
-//   },
-//   book2: {
-//     title: "A Lonely Life Survivor",
-//     price: 420,
-//     pdf: "Lonely Suvivor.pdf",
-//   },
-// };
-
-// // ===============================
-// // CREATE BOOK CHECKOUT SESSION
-// // ===============================
-// router.post("/create-book-session", async (req, res) => {
-//   try {
-//     const { bookId, email } = req.body;
-
-//     if (!bookId || !email)
-//       return res.status(400).json({ error: "Missing bookId or email" });
-
-//     const book = BOOKS[bookId];
-//     if (!book)
-//       return res.status(400).json({ error: "Invalid bookId" });
-
-//     const session = await stripe.checkout.sessions.create({
-//       mode: "payment",
-//       payment_method_types: ["card"],
-//       customer_email: email,
-//       metadata: { bookId },
-
-//       line_items: [
-//         {
-//           price_data: {
-//             currency: "usd",
-//             product_data: { name: book.title },
-//             unit_amount: book.price,
-//           },
-//           quantity: 1,
-//         },
-//       ],
-
-//       success_url: `${process.env.FRONTEND_URL}/book-success?session_id={CHECKOUT_SESSION_ID}`,
-//       cancel_url: `${process.env.FRONTEND_URL}/books`,
-//     });
-
-//     res.json({ url: session.url });
-
-//   } catch (error) {
-//     console.error("🔥 Stripe Error:", error);
-//     res.status(500).json({ error: "Checkout failed" });
-//   }
-// });
-
-// // ===============================
-// // VERIFY BOOK SESSION (FIXED)
-// // ===============================
-// router.get("/verify-book-session", async (req, res) => {
-//   try {
-//     const { session_id } = req.query;
-
-//     if (!session_id)
-//       return res.status(400).json({ success: false });
-
-//     const session = await stripe.checkout.sessions.retrieve(session_id);
-
-//     if (session.payment_status !== "paid")
-//       return res.json({ success: false });
-
-//     const bookId = session.metadata.bookId;
-//     const book = BOOKS[bookId];
-
-//     if (!book)
-//       return res.json({ success: false });
-
-//     const bookUrl = `${process.env.FRONTEND_URL}/pdfs/${book.pdf}`;
-
-//     res.json({
-//       success: true,
-//       bookUrl,
-//       bookId,
-//     });
-
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({ success: false });
-//   }
-// });
-
-// module.exports = router;
-
-
 const express = require("express");
 const router = express.Router();
 const Stripe = require("stripe");
+
 const BookOrder = require("../models/BookOrder");
 const Review = require("../models/Review");
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-// -------------------- CREATE CHECKOUT SESSION --------------------
+// ===============================
+// CREATE CHECKOUT SESSION
+// ===============================
 router.post("/purchase", async (req, res) => {
   try {
     const { email, bookId } = req.body;
-    console.log("📥 /purchase request payload:", { email, bookId });
+
+    console.log("📥 /purchase request:", { email, bookId });
 
     if (!email || !bookId) {
-      console.error("❌ Missing email or bookId in request");
+      console.error("❌ Missing email or bookId");
       return res.status(400).json({ error: "Missing email or bookId" });
     }
 
-    // Price lookup (in cents)
-    const prices = { book1: 400, book2: 420 };
+    const prices = {
+      book1: 400,
+      book2: 420,
+    };
+
     if (!prices[bookId]) {
       console.error("❌ Invalid bookId:", bookId);
       return res.status(400).json({ error: "Invalid bookId" });
@@ -131,46 +34,64 @@ router.post("/purchase", async (req, res) => {
     console.log("🔹 FRONTEND_URL:", process.env.FRONTEND_URL);
     console.log("🔹 STRIPE_SECRET_KEY exists:", !!process.env.STRIPE_SECRET_KEY);
 
-    console.log("🔹 Creating Stripe checkout session...");
+    console.log("🚀 Creating Stripe session...");
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
       customer_email: email,
       metadata: { bookId },
+
       line_items: [
         {
           price_data: {
             currency: "usd",
-            product_data: { name: `Book: ${bookId}` },
+            product_data: {
+              name: `Book: ${bookId}`,
+            },
             unit_amount: prices[bookId],
           },
           quantity: 1,
         },
       ],
+
       success_url: `${process.env.FRONTEND_URL}/book-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.FRONTEND_URL}/books`,
     });
 
-    console.log("✅ Stripe session created successfully:", session.id);
-    console.log("🔹 Checkout URL:", session.url);
+    console.log("✅ Stripe session created:", session.id);
+    console.log("🌍 Stripe checkout URL:", session.url);
 
-    return res.status(200).json({ url: session.url });
+    return res.status(200).json({
+      url: session.url, // ✅ REQUIRED FIX
+    });
 
   } catch (err) {
-    console.error("🔥 /purchase error:", err);
-    res.status(500).json({ error: err.message || "Stripe checkout creation failed" });
+    console.error("🔥 STRIPE ERROR FULL:", err);
+    return res.status(500).json({
+      error: err.message || "Stripe checkout failed",
+    });
   }
 });
 
-// -------------------- VERIFY SESSION & RETURN DOWNLOAD --------------------
+
+// ===============================
+// VERIFY SESSION
+// ===============================
 router.get("/verify-session", async (req, res) => {
   try {
     const { session_id } = req.query;
-    if (!session_id) return res.status(400).json({ error: "Missing session_id" });
+
+    console.log("📥 /verify-session:", session_id);
+
+    if (!session_id) {
+      console.error("❌ Missing session_id");
+      return res.status(400).json({ error: "Missing session_id" });
+    }
 
     const session = await stripe.checkout.sessions.retrieve(session_id);
-    console.log("[VERIFY] Retrieved session:", session.id, "status:", session.payment_status);
+
+    console.log("🔎 Session status:", session.payment_status);
 
     if (session.payment_status !== "paid") {
       return res.status(400).json({ error: "Payment not completed" });
@@ -180,71 +101,119 @@ router.get("/verify-session", async (req, res) => {
     const email = session.customer_email;
 
     let order = await BookOrder.findOne({ email, bookId });
+
     if (!order) {
-      const downloadToken = Math.random().toString(36).substring(2, 15);
+      const downloadToken = Math.random().toString(36).substring(2);
       const expiryDate = new Date();
       expiryDate.setDate(expiryDate.getDate() + 7);
 
-      order = await BookOrder.create({ email, bookId, downloadToken, expiryDate });
-      console.log("[VERIFY] New order created with token:", downloadToken);
+      order = await BookOrder.create({
+        email,
+        bookId,
+        downloadToken,
+        expiryDate,
+      });
+
+      console.log("✅ New order created:", order);
     } else {
-      console.log("[VERIFY] Order already exists for", email, bookId);
+      console.log("ℹ️ Order already exists");
     }
 
-    res.json({
+    return res.json({
       downloadUrl: `${process.env.SERVER_URL}/api/books/download/${order.downloadToken}`,
       bookId,
       email,
     });
+
   } catch (err) {
-    console.error("[VERIFY] Verification failed:", err);
-    res.status(500).json({ error: "Verification failed, check server logs" });
+    console.error("🔥 VERIFY ERROR:", err);
+    res.status(500).json({ error: "Verification failed" });
   }
 });
 
-// -------------------- SECURE DOWNLOAD --------------------
+
+// ===============================
+// DOWNLOAD BOOK
+// ===============================
 router.get("/download/:token", async (req, res) => {
   try {
     const { token } = req.params;
+
+    console.log("📥 Download request:", token);
+
     const order = await BookOrder.findOne({ downloadToken: token });
 
-    if (!order) return res.status(403).json({ error: "Invalid link" });
-    if (new Date() > order.expiryDate) return res.status(403).json({ error: "Link expired" });
+    if (!order) {
+      console.error("❌ Invalid token");
+      return res.status(403).json({ error: "Invalid link" });
+    }
 
-    console.log("[DOWNLOAD] Serving book:", order.bookId, "for token:", token);
-    res.redirect(`/pdfs/${order.bookId}.pdf`);
+    if (new Date() > order.expiryDate) {
+      console.error("❌ Link expired");
+      return res.status(403).json({ error: "Link expired" });
+    }
+
+    console.log("✅ Serving book:", order.bookId);
+
+    return res.redirect(`/pdfs/${order.bookId}.pdf`);
+
   } catch (err) {
-    console.error("[DOWNLOAD] Failed:", err);
+    console.error("🔥 DOWNLOAD ERROR:", err);
     res.status(500).json({ error: "Download failed" });
   }
 });
 
-// -------------------- POST REVIEW --------------------
+
+// ===============================
+// ADD REVIEW
+// ===============================
 router.post("/review", async (req, res) => {
   try {
     const { email, bookId, rating, comment } = req.body;
 
-    const purchased = await BookOrder.findOne({ email, bookId });
-    if (!purchased)
-      return res.status(403).json({ error: "You must purchase this book before reviewing." });
+    console.log("📥 New review:", { email, bookId });
 
-    const review = await Review.create({ email, bookId, rating, comment });
-    console.log("[REVIEW] New review:", review);
+    const purchased = await BookOrder.findOne({ email, bookId });
+
+    if (!purchased) {
+      return res.status(403).json({
+        error: "You must purchase this book before reviewing.",
+      });
+    }
+
+    const review = await Review.create({
+      email,
+      bookId,
+      rating,
+      comment,
+    });
+
+    console.log("✅ Review saved:", review);
 
     res.json(review);
+
   } catch (err) {
-    console.error("[REVIEW] Failed:", err);
+    console.error("🔥 REVIEW ERROR:", err);
     res.status(500).json({ error: "Review failed" });
   }
 });
 
-// -------------------- GET REVIEWS --------------------
+
+// ===============================
+// GET REVIEWS
+// ===============================
 router.get("/reviews/:bookId", async (req, res) => {
   try {
-    const reviews = await Review.find({ bookId: req.params.bookId }).sort({ createdAt: -1 });
-    res.json(reviews);
+    const { bookId } = req.params;
+
+    console.log("📥 Fetch reviews for:", bookId);
+
+    const reviews = await Review.find({ bookId }).sort({ createdAt: -1 });
+
+    return res.json(reviews);
+
   } catch (err) {
-    console.error("[GET REVIEWS] Failed:", err);
+    console.error("🔥 GET REVIEWS ERROR:", err);
     res.status(500).json({ error: "Failed to fetch reviews" });
   }
 });
