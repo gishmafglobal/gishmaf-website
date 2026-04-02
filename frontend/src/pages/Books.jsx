@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 
-const API_URL = "https://gishmaf-website-1.onrender.com";
-const stripePromise = loadStripe("YOUR_STRIPE_PUBLISHABLE_KEY"); // replace with your Stripe key
+const API_URL = process.env.REACT_APP_API_URL;
+const stripePromise = loadStripe(process.env.VITE_STRIPE_PUBLIC_KEY); // ✅ use env key
 
-// Pre-populated reviews
 const FAKE_REVIEWS = {
   book1: [
     { email: "alice@gmail.com", rating: 5, comment: "Absolutely loved this book!" },
@@ -54,17 +53,19 @@ export default function Books() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, bookId }),
       });
+
       const data = await res.json();
+      console.log("[HANDLE PURCHASE] Backend response:", data); // ✅ log the response
 
       if (data.sessionId) {
         const stripe = await stripePromise;
         await stripe.redirectToCheckout({ sessionId: data.sessionId });
       } else {
-        alert("Purchase failed: checkout session not created");
+        alert(`Purchase failed: checkout session not created. Backend message: ${data.error || "no error info"}`);
       }
     } catch (err) {
-      console.error(err);
-      alert("Purchase failed");
+      console.error("[HANDLE PURCHASE ERROR]", err);
+      alert("Purchase failed: see console for details");
     } finally {
       setLoadingBook(null);
     }
