@@ -76,15 +76,13 @@
 
 
 
-
 import { useState, useEffect } from "react";
 import "./books.css";
 
 const API_URL =
-  process.env.REACT_APP_API_URL ||
-  "https://gishmaf-website-1.onrender.com";
+  process.env.REACT_APP_API_URL || "https://gishmaf-website-1.onrender.com";
 
-// Pre-populated fake reviews for trust
+// Fake reviews for display
 const FAKE_REVIEWS = {
   book1: [
     { email: "alice@gmail.com", rating: 5, comment: "Absolutely loved this book! A must-read." },
@@ -106,7 +104,6 @@ export default function Books() {
   const [myBooks, setMyBooks] = useState([]);
   const [reviewForm, setReviewForm] = useState({ rating: 5, comment: "" });
 
-  // Use public folder images to avoid import issues
   const books = [
     { id: "book1", title: "Escape from the Street", image: "/images/book1.jpg" },
     { id: "book2", title: "A Lonely Life Survivor", image: "/images/book2.jpg" },
@@ -119,28 +116,26 @@ export default function Books() {
       const updatedReviews = {};
 
       for (const book of books) {
-        const res = await fetch(`${API_URL}/api/reviews/${book.id}`);
-        const realReviews = await res.json();
+        try {
+          const res = await fetch(`${API_URL}/api/books/reviews/${book.id}`);
+          if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+          const realReviews = await res.json();
 
-        // Merge fake + real reviews
-        const combinedReviews = [...(FAKE_REVIEWS[book.id] || []), ...(realReviews || [])];
+          const combinedReviews = [...(FAKE_REVIEWS[book.id] || []), ...(realReviews || [])];
+          updatedReviews[book.id] = combinedReviews;
 
-        updatedReviews[book.id] = combinedReviews;
-
-        if (combinedReviews.length > 0) {
           const avg =
-            combinedReviews.reduce((acc, r) => acc + r.rating, 0) / combinedReviews.length;
-          updatedRatings[book.id] = {
-            average: avg.toFixed(1),
-            count: combinedReviews.length,
-          };
-        } else {
+            combinedReviews.reduce((acc, r) => acc + r.rating, 0) / combinedReviews.length || 0;
+          updatedRatings[book.id] = { average: avg.toFixed(1), count: combinedReviews.length };
+        } catch (err) {
+          console.error(`Error fetching reviews for ${book.id}:`, err);
+          updatedReviews[book.id] = FAKE_REVIEWS[book.id] || [];
           updatedRatings[book.id] = { average: "0.0", count: 0 };
         }
       }
 
-      setRatings(updatedRatings);
       setReviews(updatedReviews);
+      setRatings(updatedRatings);
     } catch (err) {
       console.error("Error fetching reviews:", err);
     }
@@ -150,7 +145,6 @@ export default function Books() {
     fetchReviews();
   }, []);
 
-  // -------------------- Mask Email --------------------
   const maskEmail = (email) => {
     if (!email) return "";
     const [name, domain] = email.split("@");
@@ -162,6 +156,7 @@ export default function Books() {
     if (!email) return;
     try {
       const res = await fetch(`${API_URL}/api/books/my-books?email=${email}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       if (data.success) setMyBooks(data.books);
     } catch (err) {
@@ -177,21 +172,36 @@ export default function Books() {
     }
 
     localStorage.setItem("email", email);
+    setLoadingBook(bookId);
 
     try {
-      setLoadingBook(bookId);
-      const res = await fetch(`${API_URL}/api/books/create-book-session`, {
+      const res = await fetch(`${API_URL}/api/books/purchase`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ bookId, email }),
       });
 
-      const data = await res.json();
-      if (data.url) window.location.href = data.url;
-      else alert(data.error || "Payment failed");
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (err) {
+        console.error("❌ Backend response not JSON:", text);
+        alert("Purchase failed. Check console for full backend response.");
+        return;
+      }
+
+      console.log("✅ Backend response:", data);
+
+      if (data.url) {
+        // Redirect using the new Stripe checkout session URL
+        window.location.href = data.url;
+      } else {
+        alert(`Purchase failed: ${data.error || "no error info"}`);
+      }
     } catch (err) {
-      console.error(err);
-      alert("Something went wrong during purchase.");
+      console.error("[HANDLE PURCHASE ERROR]", err);
+      alert("Purchase failed: see console for details");
     } finally {
       setLoadingBook(null);
     }
@@ -209,20 +219,21 @@ export default function Books() {
     }
 
     try {
-      await fetch(`${API_URL}/api/reviews/${bookId}`, {
+      const res = await fetch(`${API_URL}/api/books/review`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email,
+          bookId,
           rating: reviewForm.rating,
           comment: reviewForm.comment,
         }),
       });
-
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setReviewForm({ rating: 5, comment: "" });
       fetchReviews();
     } catch (err) {
-      console.error(err);
+      console.error("Failed to submit review:", err);
       alert("Failed to submit review.");
     }
   };
