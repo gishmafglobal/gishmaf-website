@@ -1,107 +1,87 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
-const API_URL = "https://gishmaf-website-1.onrender.com";
+const BOOKS = [
+  { id: "book1", title: "Escape from the Street", price: 400 },
+  { id: "book2", title: "A Lonely Life Survivor", price: 420 },
+];
 
 export default function Books() {
-  const [email, setEmail] = useState(localStorage.getItem("email") || "");
-  const [loadingBook, setLoadingBook] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [reviews, setReviews] = useState({}); // { bookId: [reviews] }
 
-  const books = [
-    { id: "book1", title: "Escape from the Street", image: "/images/book1.jpg" },
-    { id: "book2", title: "A Lonely Life Survivor", image: "/images/book2.jpg" },
-  ];
-
-  // ✅ FIXED PURCHASE FUNCTION (NO STRIPE JS)
-  const handlePurchase = async (bookId) => {
-    console.log("🚀 Starting purchase:", bookId);
-
-    if (!email || !email.includes("@")) {
-      alert("Enter a valid email");
-      return;
-    }
-
-    setLoadingBook(bookId);
-    localStorage.setItem("email", email);
-
-    try {
-      const res = await fetch(`${API_URL}/api/books/purchase`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, bookId }),
-      });
-
-      const text = await res.text();
-
-      let data;
+  useEffect(() => {
+    // Fetch reviews for each book
+    BOOKS.forEach(async (book) => {
       try {
-        data = JSON.parse(text);
+        console.log(`📥 Fetching reviews for: ${book.id}`);
+        const res = await axios.get(
+          `${process.env.REACT_APP_API_URL}/api/books/reviews/${book.id}`
+        );
+        setReviews((prev) => ({ ...prev, [book.id]: res.data }));
       } catch (err) {
-        console.error("❌ Backend returned non-JSON:", text);
-        alert("Server error. Check console.");
+        console.error(`❌ Review fetch failed for ${book.id}:`, err.response?.status || err.message);
+      }
+    });
+  }, []);
+
+  const handlePurchase = async (bookId) => {
+    try {
+      setLoading(true);
+      console.log(`🚀 Starting purchase: ${bookId}`);
+
+      // Send purchase request to backend
+      const res = await axios.post(
+        `${process.env.REACT_APP_API_URL}/api/books/purchase`,
+        { email: "customer@example.com", bookId } // replace with actual user email
+      );
+
+      if (!res.data?.url) {
+        console.error("🔥 Purchase failed: No checkout URL returned");
+        alert("Payment failed: No checkout URL returned");
+        setLoading(false);
         return;
       }
 
-      console.log("✅ Purchase response:", data);
-
-      // ✅ THIS IS THE FIX
-      if (data.url) {
-        console.log("➡️ Redirecting to Stripe Checkout...");
-        window.location.href = data.url;
-      } else {
-        alert("Payment failed: No checkout URL returned");
-      }
-
+      console.log("✅ Purchase response:", res.data);
+      window.location.href = res.data.url; // redirect to Stripe checkout
     } catch (err) {
-      console.error("🔥 Purchase error:", err);
-      alert("Purchase failed. See console.");
-    } finally {
-      setLoadingBook(null);
+      console.error("🔥 Purchase error:", err.response?.data || err.message);
+      alert("Payment failed. Check console for details.");
+      setLoading(false);
     }
   };
 
   return (
-    <div style={{ padding: "40px", fontFamily: "Arial" }}>
-      <h1>📚 Our Books</h1>
+    <div className="books-container">
+      {BOOKS.map((book) => (
+        <div key={book.id} className="book-card">
+          <h2>{book.title}</h2>
+          <p>Price: ${book.price / 100}</p>
 
-      <input
-        type="email"
-        placeholder="Enter your email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        style={{
-          padding: "10px",
-          width: "300px",
-          marginBottom: "30px",
-        }}
-      />
+          <button
+            onClick={() => handlePurchase(book.id)}
+            disabled={loading}
+          >
+            {loading ? "Processing..." : "Buy Now"}
+          </button>
 
-      <div style={{ display: "flex", gap: "20px" }}>
-        {books.map((book) => (
-          <div key={book.id} style={{ border: "1px solid #ccc", padding: "20px" }}>
-            <img
-              src={book.image}
-              alt={book.title}
-              style={{ width: "200px", height: "250px", objectFit: "cover" }}
-            />
-            <h3>{book.title}</h3>
-
-            <button
-              onClick={() => handlePurchase(book.id)}
-              disabled={loadingBook === book.id}
-              style={{
-                padding: "10px",
-                background: "black",
-                color: "white",
-                cursor: "pointer",
-              }}
-            >
-              {loadingBook === book.id ? "Processing..." : "Buy Book"}
-            </button>
+          <div className="reviews">
+            <h4>Reviews:</h4>
+            {reviews[book.id]?.length ? (
+              <ul>
+                {reviews[book.id].map((r) => (
+                  <li key={r._id}>
+                    {r.rating}★ - {r.comment} by {r.email}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No reviews yet.</p>
+            )}
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
     </div>
   );
 }
