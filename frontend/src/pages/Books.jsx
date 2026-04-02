@@ -150,23 +150,18 @@
 //   );
 // }
 
+
+
 import { useState, useEffect } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 
-// =====================
-// Environment variables
-// =====================
+// Safe environment variables
 const API_URL = import.meta.env.VITE_API_URL || "";
 const STRIPE_PUBLIC_KEY = import.meta.env.VITE_STRIPE_PUBLIC_KEY || "";
 
-// =====================
-// Stripe initialization
-// =====================
+// Load Stripe if key exists
 const stripePromise = STRIPE_PUBLIC_KEY ? loadStripe(STRIPE_PUBLIC_KEY) : null;
 
-// =====================
-// Fake reviews
-// =====================
 const FAKE_REVIEWS = {
   book1: [
     { email: "alice@gmail.com", rating: 5, comment: "Absolutely loved this book!" },
@@ -174,13 +169,9 @@ const FAKE_REVIEWS = {
   ],
   book2: [
     { email: "mike@yandex.com", rating: 5, comment: "Changed my perspective!" },
-    { email: "sarah@outlook.com", rating: 5, comment: "Very touching story." },
   ],
 };
 
-// =====================
-// Books component
-// =====================
 export default function Books() {
   const [email, setEmail] = useState(localStorage.getItem("email") || "");
   const [loadingBook, setLoadingBook] = useState(null);
@@ -192,41 +183,16 @@ export default function Books() {
     { id: "book2", title: "A Lonely Life Survivor", image: "/images/book2.jpg" },
   ];
 
-  // =====================
-  // Mask email for reviews
-  // =====================
   const maskEmail = (e) => {
     if (!e) return "";
     const [name, domain] = e.split("@");
     return name.slice(0, 2) + "****@" + domain;
   };
 
-  // =====================
-  // Handle book purchase
-  // =====================
   const handlePurchase = async (bookId) => {
-    if (!email.includes("@")) {
-      alert("Enter a valid email.");
-      return;
-    }
-
-    if (!API_URL) {
-      console.error("❌ API_URL is missing. Check your frontend .env");
-      alert("Purchase failed. API_URL missing.");
-      return;
-    }
-
-    if (!STRIPE_PUBLIC_KEY) {
-      console.error("❌ STRIPE_PUBLIC_KEY is missing. Check your frontend .env");
-      alert("Purchase failed. Stripe key missing.");
-      return;
-    }
-
-    if (!stripePromise) {
-      console.error("❌ Stripe not initialized properly.");
-      alert("Purchase failed. Stripe initialization failed.");
-      return;
-    }
+    if (!email.includes("@")) { alert("Enter a valid email"); return; }
+    if (!stripePromise) { alert("Stripe public key is missing!"); console.error("❌ Missing VITE_STRIPE_PUBLIC_KEY"); return; }
+    if (!API_URL) { alert("API URL is missing!"); console.error("❌ Missing VITE_API_URL"); return; }
 
     localStorage.setItem("email", email);
     setLoadingBook(bookId);
@@ -234,7 +200,6 @@ export default function Books() {
     try {
       console.log("[HANDLE PURCHASE] Starting purchase for book:", bookId);
 
-      // ✅ Fetch purchase session
       const res = await fetch(`${API_URL}/api/books/purchase`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -243,9 +208,8 @@ export default function Books() {
 
       const text = await res.text();
       let data;
-      try {
-        data = JSON.parse(text);
-      } catch (err) {
+      try { data = JSON.parse(text); } 
+      catch (err) {
         console.error("❌ Backend response not JSON:", text);
         alert("Purchase failed. Check console for full backend response.");
         return;
@@ -253,12 +217,13 @@ export default function Books() {
 
       console.log("✅ Backend response:", data);
 
-      if (data.sessionId) {
-        const stripe = await stripePromise;
-        await stripe.redirectToCheckout({ sessionId: data.sessionId });
+      if (data.url) {
+        console.log("[HANDLE PURCHASE] Redirecting to Stripe checkout:", data.url);
+        window.location.href = data.url; // <-- new Stripe.js method
       } else {
         alert(`Purchase failed: ${data.error || "no error info"}`);
       }
+
     } catch (err) {
       console.error("[HANDLE PURCHASE ERROR]", err);
       alert("Purchase failed: see console for details");
@@ -267,34 +232,24 @@ export default function Books() {
     }
   };
 
-  // =====================
-  // Load reviews and ratings
-  // =====================
   useEffect(() => {
     const r = {};
     const avg = {};
     for (const b of books) {
       r[b.id] = FAKE_REVIEWS[b.id] || [];
       const reviewsList = r[b.id];
-      avg[b.id] = reviewsList.length
-        ? {
-            average: (reviewsList.reduce((acc, r) => acc + r.rating, 0) / reviewsList.length).toFixed(1),
-            count: reviewsList.length,
-          }
+      avg[b.id] = reviewsList.length > 0
+        ? { average: (reviewsList.reduce((acc, r) => acc + r.rating, 0) / reviewsList.length).toFixed(1), count: reviewsList.length }
         : { average: "0.0", count: 0 };
     }
     setReviews(r);
     setRatings(avg);
   }, []);
 
-  // =====================
-  // Render
-  // =====================
   return (
     <div style={{ backgroundColor: "#f4f6f9", minHeight: "100vh", padding: "60px 20px", fontFamily: "Segoe UI, sans-serif", color: "#111" }}>
       <h1 style={{ textAlign: "center", fontSize: "42px", fontWeight: "700", marginBottom: "30px" }}>📚 Our Books</h1>
 
-      {/* Email input */}
       <div style={{ maxWidth: "400px", margin: "0 auto 40px auto" }}>
         <input
           type="email"
@@ -305,24 +260,22 @@ export default function Books() {
         />
       </div>
 
-      {/* Book cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "40px", maxWidth: "1200px", margin: "0 auto" }}>
         {books.map((book) => (
           <div key={book.id} style={{ background: "#fff", borderRadius: "20px", padding: "25px", boxShadow: "0 10px 30px rgba(0,0,0,0.1)" }}>
             <img src={book.image} alt={book.title} style={{ width: "100%", height: "300px", objectFit: "cover", borderRadius: "15px", marginBottom: "20px" }} />
             <h2 style={{ fontSize: "22px", fontWeight: "600", marginBottom: "10px" }}>{book.title}</h2>
-            <div style={{ fontSize: "16px", fontWeight: "600", color: "#f59e0b", marginBottom: "15px" }}>⭐ {ratings[book.id]?.average} ({ratings[book.id]?.count} reviews)</div>
-            <button
-              disabled={loadingBook === book.id}
-              onClick={() => handlePurchase(book.id)}
-              style={{ width: "100%", padding: "14px", borderRadius: "10px", border: "none", backgroundColor: "#111", color: "#fff", fontSize: "15px", fontWeight: "600", cursor: "pointer", marginBottom: "25px" }}
-            >
+            <div style={{ fontSize: "16px", fontWeight: "600", color: "#f59e0b", marginBottom: "15px" }}>
+              ⭐ {ratings[book.id]?.average} ({ratings[book.id]?.count} reviews)
+            </div>
+            <button disabled={loadingBook === book.id} onClick={() => handlePurchase(book.id)}
+              style={{ width: "100%", padding: "14px", borderRadius: "10px", border: "none", backgroundColor: "#111", color: "#fff", fontSize: "15px", fontWeight: "600", cursor: "pointer", marginBottom: "25px" }}>
               {loadingBook === book.id ? "Processing..." : "Buy Book"}
             </button>
 
             <h4 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "15px" }}>Reviews</h4>
-            {(reviews[book.id] || []).map((r, index) => (
-              <div key={index} style={{ backgroundColor: "#f9fafb", padding: "15px", borderRadius: "12px", marginBottom: "12px", border: "1px solid #e5e7eb" }}>
+            {(reviews[book.id] || []).map((r, i) => (
+              <div key={i} style={{ backgroundColor: "#f9fafb", padding: "15px", borderRadius: "12px", marginBottom: "12px", border: "1px solid #e5e7eb" }}>
                 <div style={{ fontWeight: "600", fontSize: "14px", marginBottom: "5px" }}>{maskEmail(r.email)}</div>
                 <div style={{ color: "#f59e0b", fontWeight: "600", marginBottom: "6px" }}>⭐ {r.rating}</div>
                 <p style={{ fontSize: "14px", color: "#333", lineHeight: "1.6", margin: 0 }}>{r.comment}</p>

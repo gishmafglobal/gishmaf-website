@@ -167,37 +167,35 @@
 // module.exports = router;
 
 
+
 const express = require("express");
 const router = express.Router();
 const Stripe = require("stripe");
+
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+if (!stripeSecretKey) console.error("❌ STRIPE_SECRET_KEY is missing in env!");
+
+const stripe = new Stripe(stripeSecretKey);
+
 const BookOrder = require("../models/BookOrder");
-const Review = require("../models/Review");
 
-// === STRIPE INIT ===
-if (!process.env.STRIPE_SECRET_KEY) {
-  console.error("❌ STRIPE_SECRET_KEY is missing!");
-} else {
-  console.log("✅ STRIPE_SECRET_KEY exists");
-}
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+// Prices in cents
+const prices = { book1: 400, book2: 420 };
 
-// === PURCHASE ROUTE ===
+// ------------------------------
+// CREATE CHECKOUT SESSION
+// ------------------------------
 router.post("/purchase", async (req, res) => {
   try {
     const { email, bookId } = req.body;
-    console.log("📥 Purchase request payload:", req.body);
 
-    const prices = { book1: 400, book2: 420 };
+    console.log("📥 Purchase request:", email, bookId);
 
     if (!email || !bookId) return res.status(400).json({ error: "Missing email or bookId" });
     if (!prices[bookId]) return res.status(400).json({ error: "Invalid bookId" });
+    if (!process.env.FRONTEND_URL) console.warn("⚠️ FRONTEND_URL is missing!");
 
-    if (!process.env.FRONTEND_URL) {
-      console.error("❌ FRONTEND_URL missing in backend env");
-      return res.status(500).json({ error: "FRONTEND_URL not configured on backend" });
-    }
-
-    console.log("🌐 Creating Stripe checkout session...");
+    console.log("🔹 Creating Stripe checkout session...");
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
@@ -218,12 +216,13 @@ router.post("/purchase", async (req, res) => {
       cancel_url: `${process.env.FRONTEND_URL}/books`,
     });
 
-    console.log("✅ Stripe session created:", session.id);
-    return res.json({ sessionId: session.id });
+    console.log("✅ Stripe session created successfully:", session.url);
 
+    // Return URL instead of sessionId (new Stripe.js)
+    res.status(200).json({ url: session.url });
   } catch (err) {
-    console.error("🔥 Stripe purchase error:", err);
-    return res.status(500).json({ error: err.message || "Stripe checkout failed" });
+    console.error("🔥 Stripe session creation failed:", err);
+    res.status(500).json({ error: err.message || "Stripe failed" });
   }
 });
 
