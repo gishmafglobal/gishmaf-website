@@ -2,14 +2,14 @@ const express = require("express");
 const router = express.Router();
 const Stripe = require("stripe");
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const crypto = require("crypto");
 
 const BookOrder = require("../models/BookOrder");
 const Review = require("../models/Review");
 
-
-// =====================================
+// ================================
 // CREATE CHECKOUT SESSION
-// =====================================
+// ================================
 router.post("/purchase", async (req, res) => {
   try {
     const { email, bookId } = req.body;
@@ -44,24 +44,21 @@ router.post("/purchase", async (req, res) => {
       cancel_url: `${process.env.CLIENT_URL}/books`,
     });
 
-    res.json({ url: session.url });
+    // Return session ID to front-end
+    res.json({ id: session.id });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Checkout failed" });
+    res.status(500).json({ error: "Checkout creation failed" });
   }
 });
 
-
-// =====================================
+// ================================
 // VERIFY SESSION & RETURN DOWNLOAD
-// =====================================
+// ================================
 router.get("/verify-session", async (req, res) => {
   try {
     const { session_id } = req.query;
-
-    if (!session_id) {
-      return res.status(400).json({ error: "Missing session_id" });
-    }
+    if (!session_id) return res.status(400).json({ error: "Missing session_id" });
 
     const session = await stripe.checkout.sessions.retrieve(session_id);
 
@@ -72,10 +69,16 @@ router.get("/verify-session", async (req, res) => {
     const { bookId } = session.metadata;
     const email = session.customer_email;
 
-    const order = await BookOrder.findOne({ email, bookId });
-
+    // Create order if it doesn't exist
+    let order = await BookOrder.findOne({ email, bookId });
     if (!order) {
-      return res.status(400).json({ error: "Order not found" });
+      const token = crypto.randomBytes(20).toString("hex");
+      order = await BookOrder.create({
+        email,
+        bookId,
+        downloadToken: token,
+        expiryDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24h validity
+      });
     }
 
     res.json({
@@ -89,25 +92,16 @@ router.get("/verify-session", async (req, res) => {
   }
 });
 
-
-// =====================================
-// SECURE DOWNLOAD (TOKEN BASED)
-// =====================================
+// ================================
+// SECURE DOWNLOAD
+// ================================
 router.get("/download/:token", async (req, res) => {
   try {
     const { token } = req.params;
+    const order = await BookOrder.findOne({ downloadToken: token });
 
-    const order = await BookOrder.findOne({
-      downloadToken: token,
-    });
-
-    if (!order) {
-      return res.status(403).json({ error: "Invalid link" });
-    }
-
-    if (new Date() > order.expiryDate) {
-      return res.status(403).json({ error: "Link expired" });
-    }
+    if (!order) return res.status(403).json({ error: "Invalid link" });
+    if (new Date() > order.expiryDate) return res.status(403).json({ error: "Link expired" });
 
     res.redirect(`/pdfs/${order.bookId}.pdf`);
   } catch (err) {
@@ -116,32 +110,17 @@ router.get("/download/:token", async (req, res) => {
   }
 });
 
-
-// =====================================
-// ADD REVIEW (ONLY VERIFIED BUYERS)
-// =====================================
+// ================================
+// ADD REVIEW
+// ================================
 router.post("/review", async (req, res) => {
   try {
     const { email, bookId, rating, comment } = req.body;
 
-    const purchased = await BookOrder.findOne({
-      email,
-      bookId,
-    });
+    const purchased = await BookOrder.findOne({ email, bookId });
+    if (!purchased) return res.status(403).json({ error: "Purchase required" });
 
-    if (!purchased) {
-      return res.status(403).json({
-        error: "You must purchase this book before reviewing.",
-      });
-    }
-
-    const review = await Review.create({
-      email,
-      bookId,
-      rating,
-      comment,
-    });
-
+    const review = await Review.create({ email, bookId, rating, comment });
     res.json(review);
   } catch (err) {
     console.error(err);
@@ -149,16 +128,12 @@ router.post("/review", async (req, res) => {
   }
 });
 
-
-// =====================================
+// ================================
 // GET REVIEWS
-// =====================================
+// ================================
 router.get("/reviews/:bookId", async (req, res) => {
   try {
-    const reviews = await Review.find({
-      bookId: req.params.bookId,
-    }).sort({ createdAt: -1 });
-
+    const reviews = await Review.find({ bookId: req.params.bookId }).sort({ createdAt: -1 });
     res.json(reviews);
   } catch (err) {
     console.error(err);
