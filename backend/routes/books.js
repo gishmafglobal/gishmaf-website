@@ -167,45 +167,63 @@
 // module.exports = router;
 
 
-
 const express = require("express");
 const router = express.Router();
 const Stripe = require("stripe");
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
+const BookOrder = require("../models/BookOrder");
+const Review = require("../models/Review");
 
+// === STRIPE INIT ===
+if (!process.env.STRIPE_SECRET_KEY) {
+  console.error("❌ STRIPE_SECRET_KEY is missing!");
+} else {
+  console.log("✅ STRIPE_SECRET_KEY exists");
+}
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+// === PURCHASE ROUTE ===
 router.post("/purchase", async (req, res) => {
-  const { email, bookId } = req.body;
-  console.log("📥 /purchase payload:", { email, bookId });
-  console.log("STRIPE_SECRET_KEY exists:", !!process.env.STRIPE_SECRET_KEY);
-
-  if (!email || !bookId) return res.status(400).json({ error: "Missing email or bookId" });
-  if (!stripe) return res.status(500).json({ error: "Stripe not initialized, check STRIPE_SECRET_KEY" });
-
-  const prices = { book1: 400, book2: 420 };
-  if (!prices[bookId]) return res.status(400).json({ error: "Invalid bookId" });
-
   try {
-    console.log("🔹 Creating Stripe session...");
+    const { email, bookId } = req.body;
+    console.log("📥 Purchase request payload:", req.body);
+
+    const prices = { book1: 400, book2: 420 };
+
+    if (!email || !bookId) return res.status(400).json({ error: "Missing email or bookId" });
+    if (!prices[bookId]) return res.status(400).json({ error: "Invalid bookId" });
+
+    if (!process.env.FRONTEND_URL) {
+      console.error("❌ FRONTEND_URL missing in backend env");
+      return res.status(500).json({ error: "FRONTEND_URL not configured on backend" });
+    }
+
+    console.log("🌐 Creating Stripe checkout session...");
+
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
       customer_email: email,
-      line_items: [{
-        price_data: {
-          currency: "usd",
-          product_data: { name: `Book: ${bookId}` },
-          unit_amount: prices[bookId],
+      metadata: { bookId },
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            product_data: { name: `Book: ${bookId}` },
+            unit_amount: prices[bookId],
+          },
+          quantity: 1,
         },
-        quantity: 1,
-      }],
+      ],
       success_url: `${process.env.FRONTEND_URL}/book-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.FRONTEND_URL}/books`,
     });
+
     console.log("✅ Stripe session created:", session.id);
-    res.json({ sessionId: session.id });
+    return res.json({ sessionId: session.id });
+
   } catch (err) {
-    console.error("❌ Stripe error:", err.message, err);
-    res.status(500).json({ error: err.message || "Stripe session creation failed" });
+    console.error("🔥 Stripe purchase error:", err);
+    return res.status(500).json({ error: err.message || "Stripe checkout failed" });
   }
 });
 

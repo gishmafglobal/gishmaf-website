@@ -151,24 +151,22 @@
 // }
 
 
-
 import { useState, useEffect } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 
-// ✅ Safe env variables
 const API_URL = import.meta.env.VITE_API_URL || "";
 const STRIPE_PUBLIC_KEY = import.meta.env.VITE_STRIPE_PUBLIC_KEY || "";
+
+// Safe stripe initialization
 const stripePromise = STRIPE_PUBLIC_KEY ? loadStripe(STRIPE_PUBLIC_KEY) : null;
 
 const FAKE_REVIEWS = {
   book1: [
     { email: "alice@gmail.com", rating: 5, comment: "Absolutely loved this book!" },
     { email: "john@yahoo.com", rating: 5, comment: "Incredible story!" },
-    { email: "sarah@yahoo.com", rating: 4, comment: "Its a wow for me!" },
   ],
   book2: [
     { email: "mike@yandex.com", rating: 5, comment: "Changed my perspective!" },
-    { email: "sarah@outlook.com", rating: 5, comment: "Very touching story." },
   ],
 };
 
@@ -183,14 +181,14 @@ export default function Books() {
 
   const handlePurchase = async (bookId) => {
     if (!email.includes("@")) { alert("Enter a valid email"); return; }
-    if (!stripePromise) { alert("Stripe public key missing"); console.error("Missing VITE_STRIPE_PUBLIC_KEY"); return; }
-    if (!API_URL) { alert("API URL missing"); console.error("Missing VITE_API_URL"); return; }
+    if (!stripePromise) { alert("Stripe public key missing! Check VITE_STRIPE_PUBLIC_KEY"); console.error("❌ STRIPE_PUBLIC_KEY missing"); return; }
+    if (!API_URL) { alert("API_URL missing! Check VITE_API_URL"); console.error("❌ API_URL missing"); return; }
 
     localStorage.setItem("email", email);
     setLoadingBook(bookId);
 
     try {
-      console.log("📥 Purchase request payload:", { email, bookId });
+      console.log("[HANDLE PURCHASE] Sending request to backend for book:", bookId);
 
       const res = await fetch(`${API_URL}/api/books/purchase`, {
         method: "POST",
@@ -198,50 +196,45 @@ export default function Books() {
         body: JSON.stringify({ email, bookId }),
       });
 
-      console.log("Response status:", res.status);
       const text = await res.text();
+      console.log("[HANDLE PURCHASE] Raw backend response:", text);
+
       let data;
       try { data = JSON.parse(text); } 
-      catch (err) { console.error("Invalid JSON response:", text); alert("Server error: see console"); return; }
-
-      if (data.sessionId) {
-        const stripe = await stripePromise;
-        await stripe.redirectToCheckout({ sessionId: data.sessionId });
-      } else {
-        alert(`Checkout session not created: ${data.error || "no error info"}`);
+      catch(err) { 
+        console.error("❌ Backend returned non-JSON:", text); 
+        alert("Backend response invalid. Check console."); 
+        return; 
       }
+
+      if (!data.sessionId) { 
+        console.error("❌ Stripe sessionId missing in backend response", data); 
+        alert("Purchase failed: see console."); 
+        return; 
+      }
+
+      console.log("✅ Redirecting to Stripe checkout session:", data.sessionId);
+      const stripe = await stripePromise;
+      await stripe.redirectToCheckout({ sessionId: data.sessionId });
+
     } catch (err) {
-      console.error("Purchase failed:", err);
-      alert("Purchase failed: see console");
+      console.error("[HANDLE PURCHASE ERROR]", err);
+      alert("Purchase failed: see console for details");
     } finally {
       setLoadingBook(null);
     }
   };
 
   return (
-    <div style={{ padding: "60px 20px", fontFamily: "Segoe UI, sans-serif" }}>
-      <h1 style={{ textAlign: "center", fontSize: "42px" }}>📚 Our Books</h1>
-
-      <div style={{ maxWidth: "400px", margin: "20px auto" }}>
-        <input
-          type="email"
-          placeholder="Enter your email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={{ width: "100%", padding: "12px", borderRadius: "8px", border: "1px solid #ccc" }}
-        />
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "40px" }}>
+    <div style={{ padding: "40px", fontFamily: "Segoe UI, sans-serif" }}>
+      <h1>📚 Our Books</h1>
+      <input type="email" placeholder="Your email" value={email} onChange={e => setEmail(e.target.value)} />
+      <div style={{ display: "grid", gap: "20px", marginTop: "20px" }}>
         {books.map(book => (
-          <div key={book.id} style={{ background: "#fff", borderRadius: "20px", padding: "25px", boxShadow: "0 10px 30px rgba(0,0,0,0.1)" }}>
-            <img src={book.image} alt={book.title} style={{ width: "100%", height: "300px", objectFit: "cover", borderRadius: "15px", marginBottom: "20px" }} />
+          <div key={book.id} style={{ border: "1px solid #ccc", padding: "20px" }}>
             <h2>{book.title}</h2>
-            <button
-              disabled={loadingBook === book.id}
-              onClick={() => handlePurchase(book.id)}
-              style={{ width: "100%", padding: "14px", borderRadius: "10px", backgroundColor: "#111", color: "#fff", cursor: "pointer" }}
-            >
+            <img src={book.image} style={{ width: "100%", maxHeight: "300px", objectFit: "cover" }} />
+            <button disabled={loadingBook === book.id} onClick={() => handlePurchase(book.id)}>
               {loadingBook === book.id ? "Processing..." : "Buy Book"}
             </button>
           </div>
