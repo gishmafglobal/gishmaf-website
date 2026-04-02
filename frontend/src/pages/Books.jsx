@@ -63,10 +63,16 @@ export default function Books() {
       const text = await res.text();
       console.log("[HANDLE PURCHASE] Raw response text:", text);
 
-      let data = {};
-      try { data = JSON.parse(text); } 
-      catch (err) { console.error("[HANDLE PURCHASE] JSON parse error:", err); }
+      
+      let data;
 
+try {
+  data = JSON.parse(text);
+} catch (err) {
+  console.error("❌ NOT JSON RESPONSE:", text);
+  alert("Server returned invalid response:\n" + text);
+  return;
+}
       console.log("[HANDLE PURCHASE] Backend response:", data);
 
       if (data.sessionId) {

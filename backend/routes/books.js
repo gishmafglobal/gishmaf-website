@@ -14,35 +14,25 @@ router.post("/purchase", async (req, res) => {
   try {
     const { email, bookId } = req.body;
 
-    console.log("📥 Incoming:", { email, bookId });
+    console.log("📥 Purchase request:", email, bookId);
 
-    // ✅ validation
-    if (!email || !bookId) {
-      return res.status(400).json({ error: "Missing email or bookId" });
-    }
-
-    // ✅ price map
     const prices = {
       book1: 400,
       book2: 420,
     };
 
+    if (!email || !bookId) {
+      return res.status(400).json({ error: "Missing email or bookId" });
+    }
+
     if (!prices[bookId]) {
       return res.status(400).json({ error: "Invalid bookId" });
     }
 
-    // ✅ env safety checks
-    if (!process.env.STRIPE_SECRET_KEY) {
-      throw new Error("Stripe secret key missing");
-    }
+    // 🔥 LOG ENV VALUES (CRITICAL)
+    console.log("FRONTEND_URL:", process.env.FRONTEND_URL);
+    console.log("STRIPE KEY EXISTS:", !!process.env.STRIPE_SECRET_KEY);
 
-    if (!process.env.FRONTEND_URL) {
-      throw new Error("FRONTEND_URL missing");
-    }
-
-    console.log("🚀 Creating Stripe session...");
-
-    // ✅ Stripe session
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
@@ -66,19 +56,16 @@ router.post("/purchase", async (req, res) => {
 
     console.log("✅ SESSION CREATED:", session.id);
 
-    // ✅ ALWAYS return JSON
     return res.status(200).json({ sessionId: session.id });
 
   } catch (err) {
-    console.error("🔥 STRIPE ERROR:", err);
+    console.error("🔥 STRIPE ERROR FULL:", err);
 
-    // ✅ return REAL error to frontend
     return res.status(500).json({
       error: err.message || "Stripe failed",
     });
   }
 });
-
 // =========================
 // VERIFY SESSION & RETURN DOWNLOAD
 // =========================
