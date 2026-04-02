@@ -14,15 +14,14 @@ router.post("/purchase", async (req, res) => {
   try {
     const { email, bookId } = req.body;
 
-    const prices = {
-      book1: 1000,
-      book2: 1200,
-    };
-
-    if (!prices[bookId]) {
-      return res.status(400).json({ error: "Invalid book" });
+    if (!email || !bookId) {
+      return res.status(400).json({ error: "Missing email or bookId" });
     }
 
+    const prices = { book1: 1000, book2: 1200 };
+    if (!prices[bookId]) return res.status(400).json({ error: "Invalid book" });
+
+    // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       mode: "payment",
@@ -32,9 +31,7 @@ router.post("/purchase", async (req, res) => {
         {
           price_data: {
             currency: "gbp",
-            product_data: {
-              name: `Purchase of ${bookId}`,
-            },
+            product_data: { name: `Purchase of ${bookId}` },
             unit_amount: prices[bookId],
           },
           quantity: 1,
@@ -44,11 +41,11 @@ router.post("/purchase", async (req, res) => {
       cancel_url: `${process.env.CLIENT_URL}/books`,
     });
 
-    // Return session ID to front-end
-    res.json({ id: session.id });
+    // **Return the Stripe hosted checkout URL**
+    res.json({ url: session.url });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Checkout creation failed" });
+    console.error("Purchase failed:", err);
+    res.status(500).json({ error: "Purchase failed, checkout URL not created" });
   }
 });
 
@@ -61,10 +58,8 @@ router.get("/verify-session", async (req, res) => {
     if (!session_id) return res.status(400).json({ error: "Missing session_id" });
 
     const session = await stripe.checkout.sessions.retrieve(session_id);
-
-    if (session.payment_status !== "paid") {
+    if (session.payment_status !== "paid")
       return res.status(400).json({ error: "Payment not completed" });
-    }
 
     const { bookId } = session.metadata;
     const email = session.customer_email;
@@ -87,7 +82,7 @@ router.get("/verify-session", async (req, res) => {
       email,
     });
   } catch (err) {
-    console.error(err);
+    console.error("Verification failed:", err);
     res.status(500).json({ error: "Verification failed" });
   }
 });
@@ -99,45 +94,13 @@ router.get("/download/:token", async (req, res) => {
   try {
     const { token } = req.params;
     const order = await BookOrder.findOne({ downloadToken: token });
-
     if (!order) return res.status(403).json({ error: "Invalid link" });
     if (new Date() > order.expiryDate) return res.status(403).json({ error: "Link expired" });
 
     res.redirect(`/pdfs/${order.bookId}.pdf`);
   } catch (err) {
-    console.error(err);
+    console.error("Download failed:", err);
     res.status(500).json({ error: "Download failed" });
-  }
-});
-
-// ================================
-// ADD REVIEW
-// ================================
-router.post("/review", async (req, res) => {
-  try {
-    const { email, bookId, rating, comment } = req.body;
-
-    const purchased = await BookOrder.findOne({ email, bookId });
-    if (!purchased) return res.status(403).json({ error: "Purchase required" });
-
-    const review = await Review.create({ email, bookId, rating, comment });
-    res.json(review);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Review failed" });
-  }
-});
-
-// ================================
-// GET REVIEWS
-// ================================
-router.get("/reviews/:bookId", async (req, res) => {
-  try {
-    const reviews = await Review.find({ bookId: req.params.bookId }).sort({ createdAt: -1 });
-    res.json(reviews);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to fetch reviews" });
   }
 });
 
