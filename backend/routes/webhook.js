@@ -55,17 +55,40 @@ router.post("/", async (req, res) => {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
 
+      // Only continue if payment mode
       if (session.mode === "payment") {
+
         const email = session.customer_email;
-        const bookId = session.metadata.bookId;
+
+        // SAFE metadata access (prevents crash if undefined)
+        const bookId = session.metadata?.bookId;
+
+        // If this payment is NOT a book purchase, ignore safely
+        if (!bookId) {
+          return res.json({ received: true });
+        }
+
         const book = BOOKS[bookId];
 
-        if (!book) return res.json({ received: true });
+        if (!book) {
+          console.error("❌ Invalid bookId received:", bookId);
+          return res.json({ received: true });
+        }
+
+        // Prevent duplicate order if Stripe retries webhook
+        const existingOrder = await BookOrder.findOne({
+          paymentIntentId: session.payment_intent,
+        });
+
+        if (existingOrder) {
+          console.log("⚠️ Duplicate webhook detected. Skipping.");
+          return res.json({ received: true });
+        }
 
         // Generate secure token
         const downloadToken = crypto.randomBytes(32).toString("hex");
 
-        // Expiry 30 days
+        // 30-day expiry (UNCHANGED - your premium logic remains intact)
         const expiryDate = new Date();
         expiryDate.setDate(expiryDate.getDate() + 30);
 
@@ -84,7 +107,7 @@ router.post("/", async (req, res) => {
           book.pdf
         );
 
-        // Send email WITH PDF + LINK
+        // Send email with attachment + link
         await transporter.sendMail({
           from: `"Gishmaf" <${process.env.EMAIL_USER}>`,
           to: email,
@@ -112,13 +135,13 @@ router.post("/", async (req, res) => {
           ],
         });
 
-        console.log("✅ Email sent to:", email);
+        console.log("✅ Book email sent to:", email);
       }
     }
 
     res.json({ received: true });
   } catch (error) {
-    console.error("🔥 Webhook error:", error);
+    console.error("🔥 Webhook processing error:", error);
     res.status(500).json({ error: "Webhook failed" });
   }
 });
