@@ -42,18 +42,26 @@ export default function Books() {
     return name.slice(0, 2) + "****@" + domain;
   };
 
+  // Fetch user's purchased books (optional)
   const fetchMyBooks = async () => {
     if (!email) return;
     try {
       const res = await fetch(`${API_URL}/api/books/my-books?email=${email}`);
       const data = await res.json();
       if (data.success) setMyBooks(data.books);
-    } catch (err) { console.error(err); }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  // ✅ Fixed Stripe checkout
+  // ========================
+  // Purchase Handler (Stripe flow)
+  // ========================
   const handlePurchase = async (bookId) => {
-    if (!email.includes("@")) { alert("Enter valid email"); return; }
+    if (!email.includes("@")) {
+      alert("Enter valid email");
+      return;
+    }
     localStorage.setItem("email", email);
     setLoadingBook(bookId);
 
@@ -63,13 +71,17 @@ export default function Books() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, bookId }),
       });
+
       const data = await res.json();
 
       if (data.url) {
         // Redirect to Stripe checkout
         window.location.href = data.url;
+      } else if (data.downloadUrl) {
+        // If backend returns a direct download URL (already paid)
+        window.open(data.downloadUrl, "_blank");
       } else {
-        alert("Purchase failed: No checkout URL returned.");
+        alert("Purchase failed: no checkout URL returned");
       }
     } catch (err) {
       console.error(err);
@@ -79,21 +91,22 @@ export default function Books() {
     }
   };
 
+  // Load fake reviews and calculate average ratings
   useEffect(() => {
     const r = {};
     const avg = {};
     for (const b of books) {
       r[b.id] = FAKE_REVIEWS[b.id] || [];
       const reviewsList = r[b.id];
-      avg[b.id] = reviewsList.length > 0
-        ? {
-            average: (
-              reviewsList.reduce((acc, r) => acc + r.rating, 0) /
-              reviewsList.length
-            ).toFixed(1),
-            count: reviewsList.length,
-          }
-        : { average: "0.0", count: 0 };
+      avg[b.id] =
+        reviewsList.length > 0
+          ? {
+              average: (
+                reviewsList.reduce((acc, r) => acc + r.rating, 0) / reviewsList.length
+              ).toFixed(1),
+              count: reviewsList.length,
+            }
+          : { average: "0.0", count: 0 };
     }
     setReviews(r);
     setRatings(avg);
@@ -172,8 +185,7 @@ export default function Books() {
                 marginBottom: "15px",
               }}
             >
-              ⭐ {ratings[book.id]?.average} (
-              {ratings[book.id]?.count} reviews)
+              ⭐ {ratings[book.id]?.average} ({ratings[book.id]?.count} reviews)
             </div>
 
             <button
