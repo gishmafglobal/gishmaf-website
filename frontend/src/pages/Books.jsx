@@ -5,9 +5,11 @@ import { loadStripe } from "@stripe/stripe-js";
 const API_URL = import.meta.env.VITE_API_URL || "";
 const STRIPE_PUBLIC_KEY = import.meta.env.VITE_STRIPE_PUBLIC_KEY || "";
 
-// ✅ Ensure stripePromise is valid
+// ✅ Stripe initialization with safety check
 const stripePromise = STRIPE_PUBLIC_KEY ? loadStripe(STRIPE_PUBLIC_KEY) : null;
+if (!STRIPE_PUBLIC_KEY) console.error("⚠️ Stripe public key is missing! Check your VITE_STRIPE_PUBLIC_KEY in .env and Render secrets.");
 
+// Fake reviews
 const FAKE_REVIEWS = {
   book1: [
     { email: "alice@gmail.com", rating: 5, comment: "Absolutely loved this book!" },
@@ -56,6 +58,8 @@ export default function Books() {
 
     try {
       console.log("[HANDLE PURCHASE] Starting purchase for book:", bookId);
+      console.log("[HANDLE PURCHASE] Using API_URL:", API_URL);
+      console.log("[HANDLE PURCHASE] Using STRIPE_PUBLIC_KEY:", STRIPE_PUBLIC_KEY?.substring(0, 10) + "…");
 
       const res = await fetch(`${API_URL}/api/books/purchase`, {
         method: "POST",
@@ -68,9 +72,8 @@ export default function Books() {
       console.log("[HANDLE PURCHASE] Raw response text:", text);
 
       let data;
-      try {
-        data = JSON.parse(text);
-      } catch (err) {
+      try { data = JSON.parse(text); } 
+      catch (err) {
         console.error("❌ NOT JSON RESPONSE:", text);
         alert("Server returned invalid response:\n" + text);
         return;
@@ -117,13 +120,7 @@ export default function Books() {
           placeholder="Enter your email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "12px",
-            borderRadius: "8px",
-            border: "1px solid #ccc",
-            fontSize: "14px"
-          }}
+          style={{ width: "100%", padding: "12px", borderRadius: "8px", border: "1px solid #ccc", fontSize: "14px" }}
         />
       </div>
 
