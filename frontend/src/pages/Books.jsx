@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
+import { loadStripe } from "@stripe/stripe-js";
 
 const API_URL = "https://gishmaf-website-1.onrender.com";
+const stripePromise = loadStripe("YOUR_STRIPE_PUBLISHABLE_KEY"); // replace with your key
 
-// Pre-populated fake reviews
+// Fake reviews
 const FAKE_REVIEWS = {
   book1: [
     { email: "alice@gmail.com", rating: 5, comment: "Absolutely loved this book!" },
@@ -26,6 +28,7 @@ const FAKE_REVIEWS = {
 
 export default function Books() {
   const [email, setEmail] = useState(localStorage.getItem("email") || "");
+  const [myBooks, setMyBooks] = useState([]);
   const [loadingBook, setLoadingBook] = useState(null);
   const [reviews, setReviews] = useState({});
   const [ratings, setRatings] = useState({});
@@ -42,11 +45,7 @@ export default function Books() {
   };
 
   const handlePurchase = async (bookId) => {
-    if (!email.includes("@")) { 
-      alert("Enter a valid email"); 
-      return; 
-    }
-
+    if (!email.includes("@")) { alert("Enter a valid email"); return; }
     localStorage.setItem("email", email);
     setLoadingBook(bookId);
 
@@ -56,16 +55,13 @@ export default function Books() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, bookId }),
       });
-
       const data = await res.json();
 
-      if (data.url) {
-        // Redirect user to Stripe checkout
-        window.location.href = data.url;
-      } else if (data.error) {
-        alert(`Purchase failed: ${data.error}`);
+      if (data.sessionId) {
+        const stripe = await stripePromise;
+        await stripe.redirectToCheckout({ sessionId: data.sessionId });
       } else {
-        alert("Purchase failed: no checkout URL returned");
+        alert("Purchase failed: checkout session not created");
       }
     } catch (err) {
       console.error(err);
@@ -76,20 +72,13 @@ export default function Books() {
   };
 
   useEffect(() => {
-    // Initialize fake reviews and calculate averages
     const r = {};
     const avg = {};
     for (const b of books) {
       r[b.id] = FAKE_REVIEWS[b.id] || [];
       const reviewsList = r[b.id];
       avg[b.id] = reviewsList.length > 0
-        ? {
-            average: (
-              reviewsList.reduce((acc, r) => acc + r.rating, 0) /
-              reviewsList.length
-            ).toFixed(1),
-            count: reviewsList.length,
-          }
+        ? { average: (reviewsList.reduce((acc, r) => acc + r.rating, 0) / reviewsList.length).toFixed(1), count: reviewsList.length }
         : { average: "0.0", count: 0 };
     }
     setReviews(r);
@@ -97,153 +86,25 @@ export default function Books() {
   }, []);
 
   return (
-    <div
-      style={{
-        backgroundColor: "#f4f6f9",
-        minHeight: "100vh",
-        padding: "60px 20px",
-        fontFamily: "Segoe UI, sans-serif",
-        color: "#111",
-      }}
-    >
-      <h1
-        style={{
-          textAlign: "center",
-          fontSize: "42px",
-          fontWeight: "700",
-          marginBottom: "50px",
-          color: "#111",
-        }}
-      >
-        📚 Our Books
-      </h1>
+    <div style={{ backgroundColor: "#f4f6f9", minHeight: "100vh", padding: "60px 20px", fontFamily: "Segoe UI, sans-serif", color: "#111" }}>
+      <h1 style={{ textAlign: "center", fontSize: "42px", fontWeight: "700", marginBottom: "50px", color: "#111" }}>📚 Our Books</h1>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-          gap: "40px",
-          maxWidth: "1200px",
-          margin: "0 auto",
-        }}
-      >
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "40px", maxWidth: "1200px", margin: "0 auto" }}>
         {books.map((book) => (
-          <div
-            key={book.id}
-            style={{
-              background: "#ffffff",
-              borderRadius: "20px",
-              padding: "25px",
-              boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
-              transition: "0.3s ease",
-            }}
-          >
-            <img
-              src={book.image}
-              alt={book.title}
-              style={{
-                width: "100%",
-                height: "300px",
-                objectFit: "cover",
-                borderRadius: "15px",
-                marginBottom: "20px",
-              }}
-            />
-
-            <h2
-              style={{
-                fontSize: "22px",
-                fontWeight: "600",
-                marginBottom: "10px",
-                color: "#111",
-              }}
-            >
-              {book.title}
-            </h2>
-
-            <div
-              style={{
-                fontSize: "16px",
-                fontWeight: "600",
-                color: "#f59e0b",
-                marginBottom: "15px",
-              }}
-            >
-              ⭐ {ratings[book.id]?.average} ({ratings[book.id]?.count} reviews)
-            </div>
-
-            <button
-              disabled={loadingBook === book.id}
-              onClick={() => handlePurchase(book.id)}
-              style={{
-                width: "100%",
-                padding: "14px",
-                borderRadius: "10px",
-                border: "none",
-                backgroundColor: "#111",
-                color: "#fff",
-                fontSize: "15px",
-                fontWeight: "600",
-                cursor: "pointer",
-                marginBottom: "25px",
-              }}
-            >
+          <div key={book.id} style={{ background: "#ffffff", borderRadius: "20px", padding: "25px", boxShadow: "0 10px 30px rgba(0,0,0,0.1)", transition: "0.3s ease" }}>
+            <img src={book.image} alt={book.title} style={{ width: "100%", height: "300px", objectFit: "cover", borderRadius: "15px", marginBottom: "20px" }} />
+            <h2 style={{ fontSize: "22px", fontWeight: "600", marginBottom: "10px", color: "#111" }}>{book.title}</h2>
+            <div style={{ fontSize: "16px", fontWeight: "600", color: "#f59e0b", marginBottom: "15px" }}>⭐ {ratings[book.id]?.average} ({ratings[book.id]?.count} reviews)</div>
+            <button disabled={loadingBook === book.id} onClick={() => handlePurchase(book.id)} style={{ width: "100%", padding: "14px", borderRadius: "10px", border: "none", backgroundColor: "#111", color: "#fff", fontSize: "15px", fontWeight: "600", cursor: "pointer", marginBottom: "25px" }}>
               {loadingBook === book.id ? "Processing..." : "Buy Book"}
             </button>
 
-            <h4
-              style={{
-                fontSize: "18px",
-                fontWeight: "600",
-                marginBottom: "15px",
-                color: "#111",
-              }}
-            >
-              Reviews
-            </h4>
-
+            <h4 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "15px", color: "#111" }}>Reviews</h4>
             {(reviews[book.id] || []).map((r, index) => (
-              <div
-                key={index}
-                style={{
-                  backgroundColor: "#f9fafb",
-                  padding: "15px",
-                  borderRadius: "12px",
-                  marginBottom: "12px",
-                  border: "1px solid #e5e7eb",
-                }}
-              >
-                <div
-                  style={{
-                    fontWeight: "600",
-                    fontSize: "14px",
-                    marginBottom: "5px",
-                    color: "#111",
-                  }}
-                >
-                  {maskEmail(r.email)}
-                </div>
-
-                <div
-                  style={{
-                    color: "#f59e0b",
-                    fontWeight: "600",
-                    marginBottom: "6px",
-                  }}
-                >
-                  ⭐ {r.rating}
-                </div>
-
-                <p
-                  style={{
-                    fontSize: "14px",
-                    color: "#333",
-                    lineHeight: "1.6",
-                    margin: 0,
-                  }}
-                >
-                  {r.comment}
-                </p>
+              <div key={index} style={{ backgroundColor: "#f9fafb", padding: "15px", borderRadius: "12px", marginBottom: "12px", border: "1px solid #e5e7eb" }}>
+                <div style={{ fontWeight: "600", fontSize: "14px", marginBottom: "5px", color: "#111" }}>{maskEmail(r.email)}</div>
+                <div style={{ color: "#f59e0b", fontWeight: "600", marginBottom: "6px" }}>⭐ {r.rating}</div>
+                <p style={{ fontSize: "14px", color: "#333", lineHeight: "1.6", margin: 0 }}>{r.comment}</p>
               </div>
             ))}
           </div>
