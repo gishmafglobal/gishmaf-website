@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 
-// ✅ API URL stays the same
-const API_URL = import.meta.env.VITE_API_URL;
+// ✅ Safe env variables
+const API_URL = import.meta.env.VITE_API_URL || "";
+const STRIPE_PUBLIC_KEY = import.meta.env.VITE_STRIPE_PUBLIC_KEY || "";
 
-// ✅ FIX: use Vite env variable correctly
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+// ✅ Ensure stripePromise is valid
+const stripePromise = STRIPE_PUBLIC_KEY ? loadStripe(STRIPE_PUBLIC_KEY) : null;
 
 const FAKE_REVIEWS = {
   book1: [
@@ -47,6 +48,9 @@ export default function Books() {
 
   const handlePurchase = async (bookId) => {
     if (!email.includes("@")) { alert("Enter a valid email"); return; }
+    if (!stripePromise) { alert("Stripe public key is missing. Check your env variables."); return; }
+    if (!API_URL) { alert("API URL is missing. Check your env variables."); return; }
+
     localStorage.setItem("email", email);
     setLoadingBook(bookId);
 
@@ -63,16 +67,15 @@ export default function Books() {
       const text = await res.text();
       console.log("[HANDLE PURCHASE] Raw response text:", text);
 
-      
       let data;
+      try {
+        data = JSON.parse(text);
+      } catch (err) {
+        console.error("❌ NOT JSON RESPONSE:", text);
+        alert("Server returned invalid response:\n" + text);
+        return;
+      }
 
-try {
-  data = JSON.parse(text);
-} catch (err) {
-  console.error("❌ NOT JSON RESPONSE:", text);
-  alert("Server returned invalid response:\n" + text);
-  return;
-}
       console.log("[HANDLE PURCHASE] Backend response:", data);
 
       if (data.sessionId) {
@@ -105,37 +108,40 @@ try {
 
   return (
     <div style={{ backgroundColor: "#f4f6f9", minHeight: "100vh", padding: "60px 20px", fontFamily: "Segoe UI, sans-serif", color: "#111" }}>
-      <h1 style={{ textAlign: "center", fontSize: "42px", fontWeight: "700", marginBottom: "50px", color: "#111" }}>📚 Our Books</h1>
-      <div style={{ maxWidth: "400px", margin: "0 auto 40px auto" }}>
-  <input
-    type="email"
-    placeholder="Enter your email"
-    value={email}
-    onChange={(e) => setEmail(e.target.value)}
-    style={{
-      width: "100%",
-      padding: "12px",
-      borderRadius: "8px",
-      border: "1px solid #ccc",
-      fontSize: "14px"
-    }}
-  />
-</div>
+      <h1 style={{ textAlign: "center", fontSize: "42px", fontWeight: "700", marginBottom: "30px" }}>📚 Our Books</h1>
 
+      {/* Email input */}
+      <div style={{ maxWidth: "400px", margin: "0 auto 40px auto" }}>
+        <input
+          type="email"
+          placeholder="Enter your email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          style={{
+            width: "100%",
+            padding: "12px",
+            borderRadius: "8px",
+            border: "1px solid #ccc",
+            fontSize: "14px"
+          }}
+        />
+      </div>
+
+      {/* Book cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "40px", maxWidth: "1200px", margin: "0 auto" }}>
         {books.map((book) => (
-          <div key={book.id} style={{ background: "#ffffff", borderRadius: "20px", padding: "25px", boxShadow: "0 10px 30px rgba(0,0,0,0.1)", transition: "0.3s ease" }}>
+          <div key={book.id} style={{ background: "#fff", borderRadius: "20px", padding: "25px", boxShadow: "0 10px 30px rgba(0,0,0,0.1)" }}>
             <img src={book.image} alt={book.title} style={{ width: "100%", height: "300px", objectFit: "cover", borderRadius: "15px", marginBottom: "20px" }} />
-            <h2 style={{ fontSize: "22px", fontWeight: "600", marginBottom: "10px", color: "#111" }}>{book.title}</h2>
+            <h2 style={{ fontSize: "22px", fontWeight: "600", marginBottom: "10px" }}>{book.title}</h2>
             <div style={{ fontSize: "16px", fontWeight: "600", color: "#f59e0b", marginBottom: "15px" }}>⭐ {ratings[book.id]?.average} ({ratings[book.id]?.count} reviews)</div>
             <button disabled={loadingBook === book.id} onClick={() => handlePurchase(book.id)} style={{ width: "100%", padding: "14px", borderRadius: "10px", border: "none", backgroundColor: "#111", color: "#fff", fontSize: "15px", fontWeight: "600", cursor: "pointer", marginBottom: "25px" }}>
               {loadingBook === book.id ? "Processing..." : "Buy Book"}
             </button>
 
-            <h4 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "15px", color: "#111" }}>Reviews</h4>
+            <h4 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "15px" }}>Reviews</h4>
             {(reviews[book.id] || []).map((r, index) => (
               <div key={index} style={{ backgroundColor: "#f9fafb", padding: "15px", borderRadius: "12px", marginBottom: "12px", border: "1px solid #e5e7eb" }}>
-                <div style={{ fontWeight: "600", fontSize: "14px", marginBottom: "5px", color: "#111" }}>{maskEmail(r.email)}</div>
+                <div style={{ fontWeight: "600", fontSize: "14px", marginBottom: "5px" }}>{maskEmail(r.email)}</div>
                 <div style={{ color: "#f59e0b", fontWeight: "600", marginBottom: "6px" }}>⭐ {r.rating}</div>
                 <p style={{ fontSize: "14px", color: "#333", lineHeight: "1.6", margin: 0 }}>{r.comment}</p>
               </div>
