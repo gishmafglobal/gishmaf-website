@@ -26,7 +26,6 @@ const FAKE_REVIEWS = {
 
 export default function Books() {
   const [email, setEmail] = useState(localStorage.getItem("email") || "");
-  const [myBooks, setMyBooks] = useState([]);
   const [loadingBook, setLoadingBook] = useState(null);
   const [reviews, setReviews] = useState({});
   const [ratings, setRatings] = useState({});
@@ -42,26 +41,12 @@ export default function Books() {
     return name.slice(0, 2) + "****@" + domain;
   };
 
-  // Fetch user's purchased books (optional)
-  const fetchMyBooks = async () => {
-    if (!email) return;
-    try {
-      const res = await fetch(`${API_URL}/api/books/my-books?email=${email}`);
-      const data = await res.json();
-      if (data.success) setMyBooks(data.books);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  // ========================
-  // Purchase Handler (Stripe flow)
-  // ========================
   const handlePurchase = async (bookId) => {
-    if (!email.includes("@")) {
-      alert("Enter valid email");
-      return;
+    if (!email.includes("@")) { 
+      alert("Enter a valid email"); 
+      return; 
     }
+
     localStorage.setItem("email", email);
     setLoadingBook(bookId);
 
@@ -75,11 +60,10 @@ export default function Books() {
       const data = await res.json();
 
       if (data.url) {
-        // Redirect to Stripe checkout
+        // Redirect user to Stripe checkout
         window.location.href = data.url;
-      } else if (data.downloadUrl) {
-        // If backend returns a direct download URL (already paid)
-        window.open(data.downloadUrl, "_blank");
+      } else if (data.error) {
+        alert(`Purchase failed: ${data.error}`);
       } else {
         alert("Purchase failed: no checkout URL returned");
       }
@@ -91,22 +75,22 @@ export default function Books() {
     }
   };
 
-  // Load fake reviews and calculate average ratings
   useEffect(() => {
+    // Initialize fake reviews and calculate averages
     const r = {};
     const avg = {};
     for (const b of books) {
       r[b.id] = FAKE_REVIEWS[b.id] || [];
       const reviewsList = r[b.id];
-      avg[b.id] =
-        reviewsList.length > 0
-          ? {
-              average: (
-                reviewsList.reduce((acc, r) => acc + r.rating, 0) / reviewsList.length
-              ).toFixed(1),
-              count: reviewsList.length,
-            }
-          : { average: "0.0", count: 0 };
+      avg[b.id] = reviewsList.length > 0
+        ? {
+            average: (
+              reviewsList.reduce((acc, r) => acc + r.rating, 0) /
+              reviewsList.length
+            ).toFixed(1),
+            count: reviewsList.length,
+          }
+        : { average: "0.0", count: 0 };
     }
     setReviews(r);
     setRatings(avg);
