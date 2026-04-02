@@ -100,6 +100,21 @@ export default function Books() {
   return (
     <div style={{ backgroundColor: "#f4f6f9", minHeight: "100vh", padding: "60px 20px", fontFamily: "Segoe UI, sans-serif", color: "#111" }}>
       <h1 style={{ textAlign: "center", fontSize: "42px", fontWeight: "700", marginBottom: "50px", color: "#111" }}>📚 Our Books</h1>
+      <div style={{ maxWidth: "400px", margin: "0 auto 40px auto" }}>
+  <input
+    type="email"
+    placeholder="Enter your email"
+    value={email}
+    onChange={(e) => setEmail(e.target.value)}
+    style={{
+      width: "100%",
+      padding: "12px",
+      borderRadius: "8px",
+      border: "1px solid #ccc",
+      fontSize: "14px"
+    }}
+  />
+</div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "40px", maxWidth: "1200px", margin: "0 auto" }}>
         {books.map((book) => (
