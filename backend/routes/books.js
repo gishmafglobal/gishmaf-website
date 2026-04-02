@@ -170,6 +170,7 @@
 
 
 
+
 // route/book.js
 const express = require("express");
 const router = express.Router();
@@ -181,35 +182,27 @@ const BookOrder = require("../models/BookOrder");
 const Review = require("../models/Review");
 
 // =========================
-// CREATE CHECKOUT SESSION (simplified)
+// CREATE CHECKOUT SESSION (FOR FRONTEND)
 // =========================
 router.post("/purchase", async (req, res) => {
   try {
     const { email, bookId } = req.body;
 
-    if (!email || !bookId) {
-      return res.status(400).json({ error: "Missing email or bookId" });
-    }
+    if (!email || !bookId) return res.status(400).json({ error: "Missing email or bookId" });
 
     const prices = {
       book1: 400,
       book2: 420,
     };
 
-    if (!prices[bookId]) {
-      return res.status(400).json({ error: "Invalid bookId" });
-    }
+    if (!prices[bookId]) return res.status(400).json({ error: "Invalid bookId" });
 
-    if (!process.env.FRONTEND_URL) {
-      console.error("❌ FRONTEND_URL is missing!");
-      return res.status(500).json({ error: "Server misconfigured" });
-    }
-
-    // Create Stripe Checkout Session
+    // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
       mode: "payment",
+      payment_method_types: ["card"],
       customer_email: email,
+      metadata: { bookId },
       line_items: [
         {
           price_data: {
@@ -220,18 +213,18 @@ router.post("/purchase", async (req, res) => {
           quantity: 1,
         },
       ],
-      metadata: { bookId },
       success_url: `${process.env.FRONTEND_URL}/book-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.FRONTEND_URL}/books`,
     });
 
     console.log("✅ Checkout session created:", session.id);
 
-    // RETURN stripe session URL for frontend redirect
-    return res.json({ url: session.url });
+    // ⚡ Return URL to frontend for redirection
+    res.json({ url: session.url });
+
   } catch (err) {
-    console.error("🔥 Stripe create session error:", err);
-    res.status(500).json({ error: err.message || "Stripe failed" });
+    console.error("🔥 Stripe purchase error:", err);
+    res.status(500).json({ error: err.message || "Purchase failed" });
   }
 });
 
