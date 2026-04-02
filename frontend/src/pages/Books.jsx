@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 
+// ✅ API URL stays the same
 const API_URL = process.env.REACT_APP_API_URL;
-const stripePromise = loadStripe(process.env.VITE_STRIPE_PUBLIC_KEY); // ✅ use env key
+
+// ✅ FIX: use Vite env variable correctly
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
 const FAKE_REVIEWS = {
   book1: [
@@ -48,14 +51,23 @@ export default function Books() {
     setLoadingBook(bookId);
 
     try {
+      console.log("[HANDLE PURCHASE] Starting purchase for book:", bookId);
+
       const res = await fetch(`${API_URL}/api/books/purchase`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, bookId }),
       });
 
-      const data = await res.json();
-      console.log("[HANDLE PURCHASE] Backend response:", data); // ✅ log the response
+      console.log("[HANDLE PURCHASE] Response status:", res.status);
+      const text = await res.text();
+      console.log("[HANDLE PURCHASE] Raw response text:", text);
+
+      let data = {};
+      try { data = JSON.parse(text); } 
+      catch (err) { console.error("[HANDLE PURCHASE] JSON parse error:", err); }
+
+      console.log("[HANDLE PURCHASE] Backend response:", data);
 
       if (data.sessionId) {
         const stripe = await stripePromise;
@@ -113,4 +125,3 @@ export default function Books() {
     </div>
   );
 }
-
