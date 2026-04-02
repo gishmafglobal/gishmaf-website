@@ -155,28 +155,22 @@
 import { useState, useEffect } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 
-// ✅ Load environment variables safely
+// Load env variables safely
 const API_URL = import.meta.env.VITE_API_URL || "";
 const STRIPE_PUBLIC_KEY = import.meta.env.VITE_STRIPE_PUBLIC_KEY || "";
 
-// ✅ Initialize Stripe only if public key exists
+// Initialize Stripe safely
 let stripePromise = null;
 if (!STRIPE_PUBLIC_KEY) {
-  console.error("❌ VITE_STRIPE_PUBLIC_KEY is missing! Check your frontend .env file.");
+  console.error("❌ VITE_STRIPE_PUBLIC_KEY is missing! Add it in your .env");
 } else {
   stripePromise = loadStripe(STRIPE_PUBLIC_KEY);
   console.log("✅ Stripe public key loaded:", STRIPE_PUBLIC_KEY);
 }
 
 const FAKE_REVIEWS = {
-  book1: [
-    { email: "alice@gmail.com", rating: 5, comment: "Absolutely loved this book!" },
-    { email: "john@yahoo.com", rating: 5, comment: "Incredible story!" },
-  ],
-  book2: [
-    { email: "mike@yandex.com", rating: 5, comment: "Changed my perspective!" },
-    { email: "sarah@outlook.com", rating: 5, comment: "Very touching story." },
-  ],
+  book1: [{ email: "alice@gmail.com", rating: 5, comment: "Absolutely loved this book!" }],
+  book2: [{ email: "mike@yandex.com", rating: 5, comment: "Changed my perspective!" }],
 };
 
 export default function Books() {
@@ -197,63 +191,39 @@ export default function Books() {
   };
 
   const handlePurchase = async (bookId) => {
-    if (!email || !email.includes("@")) {
-      alert("❌ Enter a valid email!");
-      return;
-    }
-
-    if (!API_URL) {
-      console.error("❌ VITE_API_URL is missing!");
-      alert("API URL is missing. Check console.");
-      return;
-    }
-
-    if (!stripePromise) {
-      alert("Stripe public key is missing. Check console.");
-      return;
-    }
+    if (!email.includes("@")) { alert("Enter a valid email"); return; }
+    if (!API_URL) { console.error("❌ API URL missing"); alert("Check console"); return; }
+    if (!stripePromise) { alert("Stripe key missing, check console"); return; }
 
     localStorage.setItem("email", email);
     setLoadingBook(bookId);
 
     try {
-      console.log("[HANDLE PURCHASE] Starting purchase for book:", bookId, "with email:", email);
-
+      console.log("[HANDLE PURCHASE] Starting purchase:", bookId, email);
       const res = await fetch(`${API_URL}/api/books/purchase`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, bookId }),
       });
 
-      console.log("[HANDLE PURCHASE] Response status:", res.status);
-
       const text = await res.text();
-      console.log("[HANDLE PURCHASE] Raw response:", text);
-
-      let data = {};
-      try {
-        data = JSON.parse(text);
-      } catch (err) {
-        console.error("❌ Failed to parse backend response as JSON:", text);
-        alert("Backend returned invalid response. Check console.");
-        return;
-      }
+      let data;
+      try { data = JSON.parse(text); } 
+      catch { console.error("❌ Backend invalid response:", text); alert("Check console"); return; }
 
       if (!data.sessionId) {
         console.error("❌ Checkout session not created:", data);
-        alert("Purchase failed: checkout session not created. See console.");
+        alert("Purchase failed. Check console for details.");
         return;
       }
 
-      console.log("✅ Checkout session received:", data.sessionId);
+      console.log("✅ Checkout session:", data.sessionId);
       const stripe = await stripePromise;
       await stripe.redirectToCheckout({ sessionId: data.sessionId });
     } catch (err) {
-      console.error("❌ Handle purchase error:", err);
-      alert("Purchase failed: check console for details.");
-    } finally {
-      setLoadingBook(null);
-    }
+      console.error("❌ Purchase error:", err);
+      alert("Purchase failed, check console.");
+    } finally { setLoadingBook(null); }
   };
 
   useEffect(() => {
@@ -263,11 +233,8 @@ export default function Books() {
       r[b.id] = FAKE_REVIEWS[b.id] || [];
       const reviewsList = r[b.id];
       avg[b.id] =
-        reviewsList.length > 0
-          ? {
-              average: (reviewsList.reduce((acc, r) => acc + r.rating, 0) / reviewsList.length).toFixed(1),
-              count: reviewsList.length,
-            }
+        reviewsList.length
+          ? { average: (reviewsList.reduce((acc, r) => acc + r.rating, 0) / reviewsList.length).toFixed(1), count: reviewsList.length }
           : { average: "0.0", count: 0 };
     }
     setReviews(r);
@@ -275,11 +242,10 @@ export default function Books() {
   }, []);
 
   return (
-    <div style={{ backgroundColor: "#f4f6f9", minHeight: "100vh", padding: "60px 20px", fontFamily: "Segoe UI, sans-serif", color: "#111" }}>
-      <h1 style={{ textAlign: "center", fontSize: "42px", fontWeight: "700", marginBottom: "30px" }}>📚 Our Books</h1>
+    <div style={{ padding: "60px 20px", fontFamily: "Segoe UI, sans-serif", minHeight: "100vh", background: "#f4f6f9" }}>
+      <h1 style={{ textAlign: "center", fontSize: "42px", marginBottom: "30px" }}>📚 Our Books</h1>
 
-      {/* Email Input */}
-      <div style={{ maxWidth: "400px", margin: "0 auto 40px auto" }}>
+      <div style={{ maxWidth: "400px", margin: "0 auto 40px" }}>
         <input
           type="email"
           placeholder="Enter your email"
@@ -289,31 +255,15 @@ export default function Books() {
         />
       </div>
 
-      {/* Book Cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "40px", maxWidth: "1200px", margin: "0 auto" }}>
         {books.map((book) => (
           <div key={book.id} style={{ background: "#fff", borderRadius: "20px", padding: "25px", boxShadow: "0 10px 30px rgba(0,0,0,0.1)" }}>
             <img src={book.image} alt={book.title} style={{ width: "100%", height: "300px", objectFit: "cover", borderRadius: "15px", marginBottom: "20px" }} />
             <h2 style={{ fontSize: "22px", fontWeight: "600", marginBottom: "10px" }}>{book.title}</h2>
-            <div style={{ fontSize: "16px", fontWeight: "600", color: "#f59e0b", marginBottom: "15px" }}>
-              ⭐ {ratings[book.id]?.average} ({ratings[book.id]?.count} reviews)
-            </div>
-            <button
-              disabled={loadingBook === book.id}
-              onClick={() => handlePurchase(book.id)}
-              style={{ width: "100%", padding: "14px", borderRadius: "10px", border: "none", backgroundColor: "#111", color: "#fff", fontSize: "15px", fontWeight: "600", cursor: "pointer", marginBottom: "25px" }}
-            >
+            <div style={{ color: "#f59e0b", fontWeight: "600", marginBottom: "15px" }}>⭐ {ratings[book.id]?.average} ({ratings[book.id]?.count} reviews)</div>
+            <button disabled={loadingBook === book.id} onClick={() => handlePurchase(book.id)} style={{ width: "100%", padding: "14px", borderRadius: "10px", background: "#111", color: "#fff", fontWeight: "600", cursor: "pointer", marginBottom: "25px" }}>
               {loadingBook === book.id ? "Processing..." : "Buy Book"}
             </button>
-
-            <h4 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "15px" }}>Reviews</h4>
-            {(reviews[book.id] || []).map((r, index) => (
-              <div key={index} style={{ backgroundColor: "#f9fafb", padding: "15px", borderRadius: "12px", marginBottom: "12px", border: "1px solid #e5e7eb" }}>
-                <div style={{ fontWeight: "600", fontSize: "14px", marginBottom: "5px" }}>{maskEmail(r.email)}</div>
-                <div style={{ color: "#f59e0b", fontWeight: "600", marginBottom: "6px" }}>⭐ {r.rating}</div>
-                <p style={{ fontSize: "14px", color: "#333", lineHeight: "1.6", margin: 0 }}>{r.comment}</p>
-              </div>
-            ))}
           </div>
         ))}
       </div>
