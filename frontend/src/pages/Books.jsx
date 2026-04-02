@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 
 const API_URL = "https://gishmaf-website-1.onrender.com";
-const stripePromise = loadStripe("YOUR_STRIPE_PUBLISHABLE_KEY"); // replace with your key
+const stripePromise = loadStripe("YOUR_STRIPE_PUBLISHABLE_KEY"); // replace with your Stripe key
 
-// Fake reviews
+// Pre-populated reviews
 const FAKE_REVIEWS = {
   book1: [
     { email: "alice@gmail.com", rating: 5, comment: "Absolutely loved this book!" },
@@ -28,7 +28,6 @@ const FAKE_REVIEWS = {
 
 export default function Books() {
   const [email, setEmail] = useState(localStorage.getItem("email") || "");
-  const [myBooks, setMyBooks] = useState([]);
   const [loadingBook, setLoadingBook] = useState(null);
   const [reviews, setReviews] = useState({});
   const [ratings, setRatings] = useState({});
