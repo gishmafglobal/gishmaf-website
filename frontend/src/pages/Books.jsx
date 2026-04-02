@@ -155,113 +155,93 @@
 import { useState, useEffect } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 
-// Load env variables safely
+// ✅ Safe env variables
 const API_URL = import.meta.env.VITE_API_URL || "";
 const STRIPE_PUBLIC_KEY = import.meta.env.VITE_STRIPE_PUBLIC_KEY || "";
-
-// Initialize Stripe safely
-let stripePromise = null;
-if (!STRIPE_PUBLIC_KEY) {
-  console.error("❌ VITE_STRIPE_PUBLIC_KEY is missing! Add it in your .env");
-} else {
-  stripePromise = loadStripe(STRIPE_PUBLIC_KEY);
-  console.log("✅ Stripe public key loaded:", STRIPE_PUBLIC_KEY);
-}
+const stripePromise = STRIPE_PUBLIC_KEY ? loadStripe(STRIPE_PUBLIC_KEY) : null;
 
 const FAKE_REVIEWS = {
-  book1: [{ email: "alice@gmail.com", rating: 5, comment: "Absolutely loved this book!" }],
-  book2: [{ email: "mike@yandex.com", rating: 5, comment: "Changed my perspective!" }],
+  book1: [
+    { email: "alice@gmail.com", rating: 5, comment: "Absolutely loved this book!" },
+    { email: "john@yahoo.com", rating: 5, comment: "Incredible story!" },
+    { email: "sarah@yahoo.com", rating: 4, comment: "Its a wow for me!" },
+  ],
+  book2: [
+    { email: "mike@yandex.com", rating: 5, comment: "Changed my perspective!" },
+    { email: "sarah@outlook.com", rating: 5, comment: "Very touching story." },
+  ],
 };
 
 export default function Books() {
   const [email, setEmail] = useState(localStorage.getItem("email") || "");
   const [loadingBook, setLoadingBook] = useState(null);
-  const [reviews, setReviews] = useState({});
-  const [ratings, setRatings] = useState({});
 
   const books = [
     { id: "book1", title: "Escape from the Street", image: "/images/book1.jpg" },
     { id: "book2", title: "A Lonely Life Survivor", image: "/images/book2.jpg" },
   ];
 
-  const maskEmail = (e) => {
-    if (!e) return "";
-    const [name, domain] = e.split("@");
-    return name.slice(0, 2) + "****@" + domain;
-  };
-
   const handlePurchase = async (bookId) => {
     if (!email.includes("@")) { alert("Enter a valid email"); return; }
-    if (!API_URL) { console.error("❌ API URL missing"); alert("Check console"); return; }
-    if (!stripePromise) { alert("Stripe key missing, check console"); return; }
+    if (!stripePromise) { alert("Stripe public key missing"); console.error("Missing VITE_STRIPE_PUBLIC_KEY"); return; }
+    if (!API_URL) { alert("API URL missing"); console.error("Missing VITE_API_URL"); return; }
 
     localStorage.setItem("email", email);
     setLoadingBook(bookId);
 
     try {
-      console.log("[HANDLE PURCHASE] Starting purchase:", bookId, email);
+      console.log("📥 Purchase request payload:", { email, bookId });
+
       const res = await fetch(`${API_URL}/api/books/purchase`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, bookId }),
       });
 
+      console.log("Response status:", res.status);
       const text = await res.text();
       let data;
       try { data = JSON.parse(text); } 
-      catch { console.error("❌ Backend invalid response:", text); alert("Check console"); return; }
+      catch (err) { console.error("Invalid JSON response:", text); alert("Server error: see console"); return; }
 
-      if (!data.sessionId) {
-        console.error("❌ Checkout session not created:", data);
-        alert("Purchase failed. Check console for details.");
-        return;
+      if (data.sessionId) {
+        const stripe = await stripePromise;
+        await stripe.redirectToCheckout({ sessionId: data.sessionId });
+      } else {
+        alert(`Checkout session not created: ${data.error || "no error info"}`);
       }
-
-      console.log("✅ Checkout session:", data.sessionId);
-      const stripe = await stripePromise;
-      await stripe.redirectToCheckout({ sessionId: data.sessionId });
     } catch (err) {
-      console.error("❌ Purchase error:", err);
-      alert("Purchase failed, check console.");
-    } finally { setLoadingBook(null); }
+      console.error("Purchase failed:", err);
+      alert("Purchase failed: see console");
+    } finally {
+      setLoadingBook(null);
+    }
   };
 
-  useEffect(() => {
-    const r = {};
-    const avg = {};
-    for (const b of books) {
-      r[b.id] = FAKE_REVIEWS[b.id] || [];
-      const reviewsList = r[b.id];
-      avg[b.id] =
-        reviewsList.length
-          ? { average: (reviewsList.reduce((acc, r) => acc + r.rating, 0) / reviewsList.length).toFixed(1), count: reviewsList.length }
-          : { average: "0.0", count: 0 };
-    }
-    setReviews(r);
-    setRatings(avg);
-  }, []);
-
   return (
-    <div style={{ padding: "60px 20px", fontFamily: "Segoe UI, sans-serif", minHeight: "100vh", background: "#f4f6f9" }}>
-      <h1 style={{ textAlign: "center", fontSize: "42px", marginBottom: "30px" }}>📚 Our Books</h1>
+    <div style={{ padding: "60px 20px", fontFamily: "Segoe UI, sans-serif" }}>
+      <h1 style={{ textAlign: "center", fontSize: "42px" }}>📚 Our Books</h1>
 
-      <div style={{ maxWidth: "400px", margin: "0 auto 40px" }}>
+      <div style={{ maxWidth: "400px", margin: "20px auto" }}>
         <input
           type="email"
           placeholder="Enter your email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          style={{ width: "100%", padding: "12px", borderRadius: "8px", border: "1px solid #ccc", fontSize: "14px" }}
+          style={{ width: "100%", padding: "12px", borderRadius: "8px", border: "1px solid #ccc" }}
         />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "40px", maxWidth: "1200px", margin: "0 auto" }}>
-        {books.map((book) => (
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "40px" }}>
+        {books.map(book => (
           <div key={book.id} style={{ background: "#fff", borderRadius: "20px", padding: "25px", boxShadow: "0 10px 30px rgba(0,0,0,0.1)" }}>
             <img src={book.image} alt={book.title} style={{ width: "100%", height: "300px", objectFit: "cover", borderRadius: "15px", marginBottom: "20px" }} />
-            <h2 style={{ fontSize: "22px", fontWeight: "600", marginBottom: "10px" }}>{book.title}</h2>
-            <div style={{ color: "#f59e0b", fontWeight: "600", marginBottom: "15px" }}>⭐ {ratings[book.id]?.average} ({ratings[book.id]?.count} reviews)</div>
-            <button disabled={loadingBook === book.id} onClick={() => handlePurchase(book.id)} style={{ width: "100%", padding: "14px", borderRadius: "10px", background: "#111", color: "#fff", fontWeight: "600", cursor: "pointer", marginBottom: "25px" }}>
+            <h2>{book.title}</h2>
+            <button
+              disabled={loadingBook === book.id}
+              onClick={() => handlePurchase(book.id)}
+              style={{ width: "100%", padding: "14px", borderRadius: "10px", backgroundColor: "#111", color: "#fff", cursor: "pointer" }}
+            >
               {loadingBook === book.id ? "Processing..." : "Buy Book"}
             </button>
           </div>
