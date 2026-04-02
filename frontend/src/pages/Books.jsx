@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 
 // ✅ API URL stays the same
-const API_URL = process.env.REACT_APP_API_URL;
+const API_URL = import.meta.env.VITE_API_URL;
 
 // ✅ FIX: use Vite env variable correctly
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
