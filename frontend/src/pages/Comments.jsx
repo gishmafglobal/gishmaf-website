@@ -141,7 +141,11 @@ export default function Comments() {
       {/* COMMENTS */}
       <h3>All Comments</h3>
 
-      {comments.length === 0 && <p>No comments yet. Be the first!</p>}
+      {comments.length === 0 && (
+  <p style={{ color: "#888", textAlign: "center", marginTop: "20px" }}>
+    Be the first to share your feedback and join the conversation.
+  </p>
+)}
 
       {comments.map((c) => (
         <div
