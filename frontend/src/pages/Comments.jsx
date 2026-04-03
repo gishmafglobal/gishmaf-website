@@ -10,15 +10,25 @@ export default function Comments() {
     message: "",
   });
   const [loading, setLoading] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState([
+    { sender: "bot", text: "Hi 👋 Ask me anything about Gishmaf!" }
+  ]);
+  const [chatInput, setChatInput] = useState("");
 
-  // Load comments safely
+  // ✅ MASK EMAIL FUNCTION
+  const maskEmail = (email) => {
+    if (!email) return "";
+    const [name, domain] = email.split("@");
+    return name.slice(0, 2) + "****@" + domain;
+  };
+
+  // ✅ LOAD COMMENTS FAST
   const loadComments = async () => {
     try {
       const res = await fetch(`${API}/api/comments`);
       const data = await res.json();
-      if (Array.isArray(data)) {
-        setComments(data);
-      }
+      setComments(Array.isArray(data) ? data : []);
     } catch (err) {
       console.log("Load error:", err);
     }
@@ -28,6 +38,7 @@ export default function Comments() {
     loadComments();
   }, []);
 
+  // ✅ FORM HANDLING
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -49,11 +60,11 @@ export default function Comments() {
         body: JSON.stringify(form),
       });
 
-      alert(
-        "✅ Thanks for your comment! If urgent, contact us by mail. Also check our Learning Hub if you can teach any skills there,then reachout to us by mail for further progression. Cheers!"
-      );
+      alert("✅ Comment posted successfully!");
 
       setForm({ name: "", email: "", message: "" });
+
+      // reload instantly
       loadComments();
     } catch (err) {
       console.log("Post error:", err);
@@ -62,10 +73,39 @@ export default function Comments() {
     }
   };
 
+  // =========================
+  // 🤖 SIMPLE AI CHAT LOGIC
+  // =========================
+  const getBotReply = (msg) => {
+    msg = msg.toLowerCase();
+
+    if (msg.includes("course") || msg.includes("skill"))
+      return "We offer tech, music, business and more. Check the Skills page!";
+
+    if (msg.includes("price"))
+      return "Prices vary by course. Want to speak to a human? Click below 👇";
+
+    if (msg.includes("help"))
+      return "You can contact support via WhatsApp or email below 👇";
+
+    return "I'm here to help 😊 Ask about skills, courses, or support!";
+  };
+
+  const sendChat = () => {
+    if (!chatInput.trim()) return;
+
+    const userMsg = { sender: "user", text: chatInput };
+    const botMsg = { sender: "bot", text: getBotReply(chatInput) };
+
+    setChatMessages([...chatMessages, userMsg, botMsg]);
+    setChatInput("");
+  };
+
   return (
     <div style={{ padding: "30px", maxWidth: "700px", margin: "auto" }}>
       <h2>Community Comments</h2>
 
+      {/* FORM */}
       <form onSubmit={handleSubmit}>
         <input
           name="name"
@@ -98,6 +138,7 @@ export default function Comments() {
 
       <hr style={{ margin: "30px 0" }} />
 
+      {/* COMMENTS */}
       <h3>All Comments</h3>
 
       {comments.length === 0 && <p>No comments yet. Be the first!</p>}
@@ -112,10 +153,81 @@ export default function Comments() {
             borderRadius: "8px",
           }}
         >
-          <strong>{c.name}</strong> ({c.email})
+          <strong>{c.name}</strong> ({maskEmail(c.email)})
           <p>{c.message}</p>
         </div>
       ))}
+
+      {/* ========================= */}
+      {/* 🤖 AI CHATBOT UI */}
+      {/* ========================= */}
+      <div
+        onClick={() => setChatOpen(!chatOpen)}
+        style={{
+          position: "fixed",
+          bottom: "20px",
+          right: "20px",
+          background: "#111",
+          color: "#fff",
+          padding: "15px",
+          borderRadius: "50%",
+          cursor: "pointer",
+        }}
+      >
+        💬
+      </div>
+
+      {chatOpen && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: "80px",
+            right: "20px",
+            width: "300px",
+            height: "400px",
+            background: "#fff",
+            border: "1px solid #ddd",
+            borderRadius: "10px",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <div style={{ padding: "10px", background: "#111", color: "#fff" }}>
+            Gishmaf AI Assistant
+          </div>
+
+          <div style={{ flex: 1, padding: "10px", overflowY: "auto" }}>
+            {chatMessages.map((m, i) => (
+              <div key={i} style={{ marginBottom: "10px" }}>
+                <b>{m.sender === "bot" ? "AI" : "You"}:</b> {m.text}
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: "flex" }}>
+            <input
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              style={{ flex: 1, padding: "8px" }}
+              placeholder="Ask something..."
+            />
+            <button onClick={sendChat}>Send</button>
+          </div>
+
+          {/* CONTACT SUPPORT */}
+          <div style={{ padding: "10px", fontSize: "12px" }}>
+            Need human help?  
+            <br />
+            <a href="https://wa.me/19378072552" target="_blank">
+              WhatsApp Support
+            </a>
+            <br />
+            <a href="mailto:gishmafglobal@gmail.com">
+              Email Support
+            </a>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
