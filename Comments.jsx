@@ -100,7 +100,7 @@ export default function Comments() {
 
       <h3>All Comments</h3>
 
-      {comments.length === 0 && <p>No comments yet. Be the first!</p>}
+      {comments.length === 0 && <p>Pleasew add your comment here</p>}
 
       {comments.map((c) => (
         <div
