@@ -143,7 +143,7 @@ export default function Comments() {
 
       {comments.length === 0 && (
   <p style={{ color: "#888", textAlign: "center", marginTop: "20px" }}>
-    Be the first to share your feedback and join the conversation.
+    Kindly share your feedback here and join the conversation.
   </p>
 )}
 
