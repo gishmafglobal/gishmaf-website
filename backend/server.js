@@ -103,7 +103,7 @@ app.use(
 );
 
 // =======================================
-// BODY PARSER (AFTER WEBHOOK)
+// BODY PARSER
 // =======================================
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -115,7 +115,7 @@ app.use("/pdfs", express.static(path.join(__dirname, "public/pdfs")));
 app.use(express.static(path.join(__dirname, "public")));
 
 // =======================================
-// DATABASE CONNECTION
+// DATABASE
 // =======================================
 mongoose
   .connect(process.env.MONGO_URI)
@@ -129,7 +129,14 @@ mongoose
 // ROUTES
 // =======================================
 app.use("/api/books", require("./routes/books"));
-app.use("/api/chat", require("./routes/chatbot"));
+
+// ✅ COMMENTS
+const commentRoutes = require("./routes/comments");
+app.use("/api/comments", commentRoutes);
+
+// ✅ CHAT (ONLY ONE — FIXED)
+const chatRoutes = require("./routes/chat");
+app.use("/api/chat", chatRoutes);
 
 // =======================================
 // HEALTH CHECK

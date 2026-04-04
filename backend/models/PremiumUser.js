@@ -1,12 +1,25 @@
-
 const mongoose = require("mongoose");
 
-const PremiumUserSchema = new mongoose.Schema({
-  email: { type: String, required: true, unique: true },
-  status: { type: String, enum: ["active", "expired", "cancelled"], default: "active" },
-  stripeCustomerId: { type: String },
-  stripeSubscriptionId: { type: String },
-  expiresAt: { type: Date },
-}, { timestamps: true });
+const premiumUserSchema = new mongoose.Schema(
+  {
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+    },
 
-module.exports = mongoose.model("PremiumUser", PremiumUserSchema);
+    status: {
+      type: String,
+      enum: ["active", "inactive", "cancelled"],
+      default: "active",
+    },
+
+    stripeCustomerId: String,
+    stripeSubscriptionId: String,
+
+    expiresAt: Date,
+  },
+  { timestamps: true }
+);
+
+module.exports = mongoose.model("PremiumUser", premiumUserSchema);

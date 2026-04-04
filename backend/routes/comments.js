@@ -1,5 +1,3 @@
-
-
 const express = require("express");
 const router = express.Router();
 const Comment = require("../models/Comment");
@@ -7,7 +5,7 @@ const Comment = require("../models/Comment");
 // GET all comments
 router.get("/", async (req, res) => {
   try {
-    const comments = await Comment.find().sort({ date: -1 });
+    const comments = await Comment.find().sort({ createdAt: -1 });
     res.json(comments);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -23,10 +21,18 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: "All fields required" });
     }
 
-    const newComment = new Comment({ name, email, message });
+    const newComment = new Comment({
+      name,
+      email,
+      message,
+    });
+
     await newComment.save();
 
-    res.json({ message: "Comment saved successfully" });
+    res.json({
+      message: "Comment saved successfully",
+      data: newComment, // 👈 important so frontend updates instantly
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
