@@ -7,17 +7,29 @@ export default function BlogPost() {
 
   const post = blogPosts.find((p) => p.id === parseInt(id));
 
-  if (!post) {
-    return <h2 style={{ padding: "40px" }}>Post not found</h2>;
-  }
+  if (!post) return <h2 style={{ padding: "40px" }}>Post not found</h2>;
 
   return (
     <section style={{ padding: "40px", maxWidth: "800px", margin: "0 auto" }}>
-      <button onClick={() => navigate("/blog")}>
-        ← Back to Blog
-      </button>
+      <button onClick={() => navigate("/blog")}>← Back</button>
+
+      <img
+        src={post.image}
+        alt={post.title}
+        style={{
+          width: "100%",
+          height: "300px",
+          objectFit: "cover",
+          borderRadius: "10px",
+          marginTop: "20px",
+        }}
+      />
 
       <h1 style={{ marginTop: "20px" }}>{post.title}</h1>
+
+      <p style={{ color: "#777", fontSize: "14px" }}>
+        By {post.author} • {post.date}
+      </p>
 
       <p style={{ marginTop: "20px", lineHeight: "1.8", whiteSpace: "pre-line" }}>
         {post.content}
