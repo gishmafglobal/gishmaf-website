@@ -8,6 +8,33 @@ export default function BlogPost() {
 
   const post = blogPosts.find((p) => p.id === parseInt(id));
 
+  const movies = [
+    {
+      title: "Action Blockbuster",
+      image: "https://images.unsplash.com/photo-1536440136628-849c177e76a1"
+    },
+    {
+      title: "Romantic Drama",
+      image: "https://images.unsplash.com/photo-1517602302552-471fe67acf66"
+    },
+    {
+      title: "Sci-Fi Adventure",
+      image: "https://images.unsplash.com/photo-1440404653325-ab127d49abc1"
+    },
+    {
+      title: "Thriller Mystery",
+      image: "https://images.unsplash.com/photo-1505686994434-e3cc5abf1330"
+    },
+    {
+      title: "Comedy Hit",
+      image: "https://images.unsplash.com/photo-1524985069026-dd778a71c7b4"
+    },
+    {
+      title: "Epic Fantasy",
+      image: "https://images.unsplash.com/photo-1497032205916-ac775f0649ae"
+    }
+  ];
+
   if (!post) {
     return (
       <h2 style={{ padding: "40px", textAlign: "center" }}>
@@ -18,20 +45,20 @@ export default function BlogPost() {
 
   return (
     <div style={{ fontFamily: "Arial, sans-serif" }}>
-      
-      {/* 🔥 HERO SECTION */}
+
+      {/* HERO SECTION */}
       <div
         style={{
-          height: "250px",
+          minHeight: "220px",
           background: "linear-gradient(to right, #000, #222)",
           color: "#fff",
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
-          padding: "30px",
+          padding: "40px 20px",
         }}
       >
-        <h1 style={{ fontSize: "32px", maxWidth: "800px" }}>
+        <h1 style={{ fontSize: "clamp(22px, 4vw, 36px)", maxWidth: "800px" }}>
           {post.title}
         </h1>
 
@@ -41,13 +68,13 @@ export default function BlogPost() {
       </div>
 
       {/* MAIN CONTENT */}
-      <div style={{ maxWidth: "900px", margin: "0 auto", padding: "30px 20px" }}>
-        
+      <div style={{ maxWidth: "1000px", margin: "0 auto", padding: "30px 20px" }}>
+
         {/* BACK BUTTON */}
         <button
           onClick={() => navigate("/blog")}
           style={{
-            marginBottom: "20px",
+            marginBottom: "25px",
             padding: "8px 15px",
             border: "none",
             background: "#eee",
@@ -59,129 +86,178 @@ export default function BlogPost() {
         </button>
 
         {/* BLOG CONTENT */}
-        <p style={{ lineHeight: "1.9", fontSize: "17px", whiteSpace: "pre-line" }}>
+        <p
+          style={{
+            lineHeight: "1.9",
+            fontSize: "17px",
+            whiteSpace: "pre-line",
+          }}
+        >
           {post.content}
         </p>
 
-        {/* 🎬 STREAM LATEST MOVIES SECTION */}
-        <div style={{ marginTop: "50px" }}>
-          <h2 style={{ marginBottom: "20px" }}>
+        {/* MOVIE SECTION */}
+        <div style={{ marginTop: "60px" }}>
+          <h2 style={{ marginBottom: "25px" }}>
             🎬 Stream Latest Movies (2025 – 2026)
           </h2>
 
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-              gap: "20px",
+              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+              gap: "25px",
             }}
           >
-            {[
-              "Action Blockbuster",
-              "Romantic Drama",
-              "Sci-Fi Adventure",
-              "Thriller Mystery",
-              "Comedy Hit",
-              "Epic Fantasy",
-            ].map((movie, index) => (
+            {movies.map((movie, index) => (
               <div
                 key={index}
                 style={{
                   background: "#111",
-                  color: "#fff",
-                  padding: "15px",
-                  borderRadius: "10px",
-                  textAlign: "center",
+                  borderRadius: "12px",
+                  overflow: "hidden",
+                  position: "relative",
+                  cursor: "pointer",
+                  transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-6px)";
+                  e.currentTarget.style.boxShadow =
+                    "0 10px 25px rgba(0,0,0,0.5)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "none";
                 }}
               >
+                {/* PREMIUM BADGE */}
                 <div
                   style={{
-                    height: "120px",
-                    background: "#333",
-                    borderRadius: "8px",
-                    marginBottom: "10px",
+                    position: "absolute",
+                    top: "10px",
+                    left: "10px",
+                    background: "#e50914",
+                    color: "#fff",
+                    fontSize: "11px",
+                    padding: "4px 8px",
+                    borderRadius: "4px",
+                    zIndex: 2,
                   }}
-                ></div>
+                >
+                  PREMIUM
+                </div>
 
-                <h4 style={{ fontSize: "14px" }}>{movie}</h4>
-                <p style={{ fontSize: "12px", color: "#bbb" }}>
-                  2025 • HD Streaming
-                </p>
+                {/* PLAY ICON */}
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    background: "rgba(0,0,0,0.6)",
+                    borderRadius: "50%",
+                    width: "55px",
+                    height: "55px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#fff",
+                    fontSize: "22px",
+                    zIndex: 2,
+                  }}
+                >
+                  ▶
+                </div>
+
+                <img
+                  src={movie.image}
+                  alt={movie.title}
+                  style={{
+                    width: "100%",
+                    height: "220px",
+                    objectFit: "cover",
+                    transition: "transform 0.4s ease",
+                  }}
+                />
+
+                <div style={{ padding: "15px", color: "#fff" }}>
+                  <h4>{movie.title}</h4>
+                  <p style={{ fontSize: "12px", color: "#bbb" }}>
+                    2025 • HD Streaming
+                  </p>
+                </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* 🎬 ANDROID APP PROMO */}
-<div
-  style={{
-    marginTop: "60px",
-    padding: "30px",
-    borderRadius: "12px",
-    background: "#000",
-    color: "#fff",
-    textAlign: "center",
-  }}
->
-  <img
-    src={appIcon}
-    alt="Gishmaf Streaming App"
-    style={{
-      width: "90px",
-      height: "90px",
-      borderRadius: "20px",
-      marginBottom: "15px",
-    }}
-  />
+        {/* ANDROID APP PROMO */}
+        <div
+          style={{
+            marginTop: "80px",
+            padding: "40px 25px",
+            borderRadius: "16px",
+            background: "linear-gradient(to right, #000, #111)",
+            color: "#fff",
+            textAlign: "center",
+          }}
+        >
+          <img
+            src={appIcon}
+            alt="Gishmaf Streaming App"
+            style={{
+              width: "100px",
+              height: "100px",
+              borderRadius: "24px",
+              marginBottom: "20px",
+            }}
+          />
 
-  <h3 style={{ fontSize: "24px" }}>
-    🎬 Android Movie Streaming App
-  </h3>
+          <h3 style={{ fontSize: "26px" }}>
+            🎬 Android Movie Streaming App
+          </h3>
 
-  <p style={{ marginTop: "10px", lineHeight: "1.7" }}>
-    Designed specifically for Android users, our mobile streaming app gives you
-    instant access to a growing library of movies and series from 2025 and 2026.
-    Whether you're at home or on the move, you can enjoy smooth, high-quality
-    entertainment directly on your Android device.
-  </p>
+          <p style={{ marginTop: "15px", lineHeight: "1.7" }}>
+            Designed specifically for Android users, our mobile streaming app
+            gives you instant access to a growing library of movies and series
+            from 2025 and 2026. Enjoy smooth, high-quality entertainment
+            wherever you are.
+          </p>
 
-  <ul
-    style={{
-      marginTop: "20px",
-      lineHeight: "1.8",
-      textAlign: "left",
-      display: "inline-block",
-    }}
-  >
-    <li>✔ Built for Android smartphones and tablets</li>
-    <li>✔ Stream latest movies (2025 & 2026)</li>
-    <li>✔ Fast, smooth, and easy-to-use interface</li>
-    <li>✔ Watch anytime, anywhere</li>
-  </ul>
+          <ul
+            style={{
+              marginTop: "25px",
+              lineHeight: "1.8",
+              textAlign: "left",
+              display: "inline-block",
+            }}
+          >
+            <li>✔ Built for Android smartphones and tablets</li>
+            <li>✔ Stream latest movies (2025 & 2026)</li>
+            <li>✔ Fast, smooth interface</li>
+            <li>✔ Watch anytime, anywhere</li>
+          </ul>
 
-  <p style={{ marginTop: "15px", fontSize: "13px", color: "#bbb" }}>
-    Available on the Google Play Store for Android users.
-  </p>
-
-  <a
-    href="https://play.google.com/store/apps/details?id=com.gishmaf.gishtube"
-    target="_blank"
-    rel="noreferrer"
-    style={{
-      display: "inline-block",
-      marginTop: "20px",
-      padding: "14px 30px",
-      background: "#34a853",
-      color: "#fff",
-      borderRadius: "6px",
-      textDecoration: "none",
-      fontWeight: "bold",
-      fontSize: "16px",
-    }}
-  >
-    Download for Android
-  </a>
-</div>
+          <a
+            href="https://play.google.com/store/apps/details?id=com.gishmaf.gishtube"
+            target="_blank"
+            rel="noreferrer"
+            style={{
+              display: "inline-block",
+              marginTop: "30px",
+              padding: "15px 35px",
+              background: "#34a853",
+              color: "#fff",
+              borderRadius: "8px",
+              textDecoration: "none",
+              fontWeight: "bold",
+              fontSize: "16px",
+              transition: "0.3s",
+            }}
+          >
+            Download for Android
+          </a>
+        </div>
       </div>
     </div>
   );
