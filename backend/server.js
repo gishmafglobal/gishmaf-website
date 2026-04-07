@@ -54,6 +54,10 @@ mongoose
 // =======================================
 app.use("/api/books", require("./routes/books"));
 
+// ✅ PREMIUM ROUTES (ADD THIS)
+const premiumRoutes = require("./routes/premium");
+app.use("/api/premium", premiumRoutes);
+
 // ✅ COMMENTS
 const commentRoutes = require("./routes/comments");
 app.use("/api/comments", commentRoutes);
