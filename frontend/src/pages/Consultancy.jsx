@@ -49,7 +49,7 @@ export default function Consultancy() {
         </p>
 
         <div className="emails">
-          <a href="mailto:info@gishmafglobal.com">info@gishmafglobal.com</a>
+          <a href="gamirelish@gmail.com">gamirelish@gmail.com</a>
           <a href="mailto:gishmafglobalcompany@gmail.com">
             gishmafglobalcompany@gmail.com
           </a>
