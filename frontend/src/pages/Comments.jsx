@@ -8,14 +8,14 @@ export default function Comments() {
   const [replyBox, setReplyBox] = useState({});
   const [replyText, setReplyText] = useState({});
 
-  // ✅ MASK EMAIL
+  // MASK EMAIL
   const maskEmail = (email) => {
     if (!email) return "";
     const [name, domain] = email.split("@");
     return name.slice(0, 2) + "***@" + domain;
   };
 
-  // ✅ LOAD COMMENTS
+  // LOAD COMMENTS
   const loadComments = async () => {
     try {
       const res = await fetch(`${API}/api/comments`);
@@ -30,10 +30,9 @@ export default function Comments() {
     loadComments();
   }, []);
 
-  // ✅ POST COMMENT
+  // POST COMMENT
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!form.name || !form.email || !form.message) return;
 
     await fetch(`${API}/api/comments`, {
@@ -46,13 +45,13 @@ export default function Comments() {
     loadComments();
   };
 
-  // ✅ LIKE
+  // LIKE
   const likeComment = async (id) => {
     await fetch(`${API}/api/comments/${id}/like`, { method: "PUT" });
     loadComments();
   };
 
-  // ✅ REPLY
+  // REPLY
   const sendReply = async (parentId) => {
     if (!replyText[parentId]) return;
 
@@ -71,8 +70,16 @@ export default function Comments() {
   };
 
   return (
-    <div style={{ maxWidth: "700px", margin: "auto", padding: "20px" }}>
-      <h2 style={{ textAlign: "center", marginBottom: "20px" }}>
+    <div
+      style={{
+        maxWidth: "700px",
+        margin: "auto",
+        padding: "30px 20px",
+        background: "#f4f6f9",   // 👈 page background slightly grey
+        minHeight: "100vh",
+      }}
+    >
+      <h2 style={{ textAlign: "center", marginBottom: "25px" }}>
         💬 Community Comments
       </h2>
 
@@ -94,7 +101,7 @@ export default function Comments() {
           placeholder="Write something..."
           value={form.message}
           onChange={(e) => setForm({ ...form, message: e.target.value })}
-          style={inputStyle}
+          style={{ ...inputStyle, minHeight: "90px" }}
         />
         <button style={btnStyle}>Post Comment</button>
       </form>
@@ -103,13 +110,15 @@ export default function Comments() {
       {comments.map((c) => (
         <div key={c._id} style={cardStyle}>
           <div style={{ marginBottom: "8px" }}>
-            <strong>{c.name}</strong>{" "}
-            <span style={{ color: "#777", fontSize: "13px" }}>
+            <strong style={{ color: "#222" }}>{c.name}</strong>{" "}
+            <span style={{ color: "#666", fontSize: "13px" }}>
               ({maskEmail(c.email)})
             </span>
           </div>
 
-          <p style={{ marginBottom: "10px" }}>{c.message}</p>
+          <p style={{ marginBottom: "12px", color: "#333", lineHeight: "1.5" }}>
+            {c.message}
+          </p>
 
           <div style={{ display: "flex", gap: "15px" }}>
             <button style={actionBtn} onClick={() => likeComment(c._id)}>
@@ -128,7 +137,7 @@ export default function Comments() {
 
           {/* REPLY INPUT */}
           {replyBox[c._id] && (
-            <div style={{ marginTop: "10px" }}>
+            <div style={{ marginTop: "12px" }}>
               <input
                 placeholder="Write reply..."
                 value={replyText[c._id] || ""}
@@ -138,7 +147,7 @@ export default function Comments() {
                 style={inputStyle}
               />
               <button
-                style={{ ...btnStyle, marginTop: "5px" }}
+                style={{ ...btnStyle, marginTop: "6px" }}
                 onClick={() => sendReply(c._id)}
               >
                 Send Reply
@@ -149,10 +158,10 @@ export default function Comments() {
           {/* REPLIES */}
           {c.replies?.map((r, i) => (
             <div key={i} style={replyStyle}>
-              <div style={{ fontWeight: "bold", marginBottom: "4px" }}>
+              <div style={{ fontWeight: "bold", marginBottom: "4px", color: "#1a1a1a" }}>
                 Anonymous
               </div>
-              <div style={{ fontSize: "14px", color: "#333" }}>
+              <div style={{ color: "#222", fontSize: "14px" }}>
                 {r.message}
               </div>
             </div>
@@ -164,22 +173,23 @@ export default function Comments() {
 }
 
 // --------------------
-// 🎨 STYLES
+// 🎨 IMPROVED STYLES
 // --------------------
 
 const inputStyle = {
   width: "100%",
   padding: "10px",
   marginBottom: "10px",
-  borderRadius: "8px",
+  borderRadius: "6px",
   border: "1px solid #ccc",
   fontSize: "14px",
+  background: "#fff",
 };
 
 const btnStyle = {
   padding: "10px 15px",
   borderRadius: "6px",
-  background: "#111",
+  background: "#1a73e8",
   color: "#fff",
   border: "none",
   cursor: "pointer",
@@ -194,19 +204,19 @@ const actionBtn = {
 };
 
 const cardStyle = {
-  border: "1px solid #e6e6e6",
-  padding: "15px",
-  borderRadius: "10px",
-  marginBottom: "20px",
   background: "#ffffff",
-  boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+  padding: "18px",
+  borderRadius: "12px",
+  marginBottom: "20px",
+  border: "1px solid #dcdcdc",  // 👈 stronger border
+  boxShadow: "0 3px 10px rgba(0,0,0,0.06)", // 👈 depth
 };
 
 const replyStyle = {
-  marginTop: "12px",
-  marginLeft: "25px",
-  padding: "12px",
-  background: "#eef3ff",  // 👈 better visible background
-  borderLeft: "4px solid #1a73e8",  // 👈 visual reply indicator
+  marginTop: "14px",
+  marginLeft: "30px",
+  padding: "14px",
+  background: "#e9f2ff",  // 👈 clearer blue tone
+  borderLeft: "4px solid #1a73e8",
   borderRadius: "8px",
 };
