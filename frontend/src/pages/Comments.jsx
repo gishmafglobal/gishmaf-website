@@ -1,242 +1,3 @@
-// import { useEffect, useState } from "react";
-
-// const API = "https://gishmaf-website-1.onrender.com";
-
-// export default function Comments() {
-//   const [comments, setComments] = useState([]);
-//   const [form, setForm] = useState({
-//     name: "",
-//     email: "",
-//     message: "",
-//   });
-//   const [loading, setLoading] = useState(false);
-//   const [chatOpen, setChatOpen] = useState(false);
-//   const [chatMessages, setChatMessages] = useState([
-//     { sender: "bot", text: "Hi 👋 Ask me anything about Gishmaf!" }
-//   ]);
-//   const [chatInput, setChatInput] = useState("");
-
-//   // ✅ MASK EMAIL FUNCTION
-//   const maskEmail = (email) => {
-//     if (!email) return "";
-//     const [name, domain] = email.split("@");
-//     return name.slice(0, 2) + "****@" + domain;
-//   };
-
-//   // ✅ LOAD COMMENTS FAST
-//   const loadComments = async () => {
-//     try {
-//       const res = await fetch(`${API}/api/comments`);
-//       const data = await res.json();
-//       setComments(Array.isArray(data) ? data : []);
-//     } catch (err) {
-//       console.log("Load error:", err);
-//     }
-//   };
-
-//   useEffect(() => {
-//     loadComments();
-//   }, []);
-
-//   // ✅ FORM HANDLING
-//   const handleChange = (e) => {
-//     setForm({ ...form, [e.target.name]: e.target.value });
-//   };
-
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-
-//     if (!form.name || !form.email || !form.message) {
-//       alert("Please fill all fields");
-//       return;
-//     }
-
-//     try {
-//       setLoading(true);
-
-//       await fetch(`${API}/api/comments`, {
-//         method: "POST",
-//         headers: { "Content-Type": "application/json" },
-//         body: JSON.stringify(form),
-//       });
-
-//       alert("✅ Comment posted successfully!");
-
-//       setForm({ name: "", email: "", message: "" });
-
-//       // reload instantly
-//       loadComments();
-//     } catch (err) {
-//       console.log("Post error:", err);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   // =========================
-//   // 🤖 SIMPLE AI CHAT LOGIC
-//   // =========================
-//   const getBotReply = (msg) => {
-//     msg = msg.toLowerCase();
-
-//     if (msg.includes("course") || msg.includes("skill"))
-//       return "We offer tech, music, business and more. Check the Skills page!";
-
-//     if (msg.includes("price"))
-//       return "Prices vary by course. Want to speak to a human? Click below 👇";
-
-//     if (msg.includes("help"))
-//       return "You can contact support via WhatsApp or email below 👇";
-
-//     return "I'm here to help 😊 Ask about skills, courses, or support!";
-//   };
-
-//   const sendChat = () => {
-//     if (!chatInput.trim()) return;
-
-//     const userMsg = { sender: "user", text: chatInput };
-//     const botMsg = { sender: "bot", text: getBotReply(chatInput) };
-
-//     setChatMessages([...chatMessages, userMsg, botMsg]);
-//     setChatInput("");
-//   };
-
-//   return (
-//     <div style={{ padding: "30px", maxWidth: "700px", margin: "auto" }}>
-//       <h2>Community Comments</h2>
-
-//       {/* FORM */}
-//       <form onSubmit={handleSubmit}>
-//         <input
-//           name="name"
-//           placeholder="Your Name"
-//           value={form.name}
-//           onChange={handleChange}
-//           style={{ width: "100%", padding: "10px", marginBottom: "10px" }}
-//         />
-
-//         <input
-//           name="email"
-//           placeholder="Your Email"
-//           value={form.email}
-//           onChange={handleChange}
-//           style={{ width: "100%", padding: "10px", marginBottom: "10px" }}
-//         />
-
-//         <textarea
-//           name="message"
-//           placeholder="Your Comment"
-//           value={form.message}
-//           onChange={handleChange}
-//           style={{ width: "100%", padding: "10px", marginBottom: "10px" }}
-//         />
-
-//         <button type="submit" disabled={loading}>
-//           {loading ? "Posting..." : "Post Comment"}
-//         </button>
-//       </form>
-
-//       <hr style={{ margin: "30px 0" }} />
-
-//       {/* COMMENTS */}
-//       <h3>All Comments</h3>
-
-//       {comments.length === 0 && (
-//   <p style={{ color: "#888", textAlign: "center", marginTop: "20px" }}>
-//     Kindly share your feedback here and join the conversation.
-//   </p>
-// )}
-
-//       {comments.map((c) => (
-//         <div
-//           key={c._id}
-//           style={{
-//             border: "1px solid #ddd",
-//             padding: "15px",
-//             marginBottom: "15px",
-//             borderRadius: "8px",
-//           }}
-//         >
-//           <strong>{c.name}</strong> ({maskEmail(c.email)})
-//           <p>{c.message}</p>
-//         </div>
-//       ))}
-
-//       {/* ========================= */}
-//       {/* 🤖 AI CHATBOT UI */}
-//       {/* ========================= */}
-//       <div
-//         onClick={() => setChatOpen(!chatOpen)}
-//         style={{
-//           position: "fixed",
-//           bottom: "20px",
-//           right: "20px",
-//           background: "#111",
-//           color: "#fff",
-//           padding: "15px",
-//           borderRadius: "50%",
-//           cursor: "pointer",
-//         }}
-//       >
-//         💬
-//       </div>
-
-//       {chatOpen && (
-//         <div
-//           style={{
-//             position: "fixed",
-//             bottom: "80px",
-//             right: "20px",
-//             width: "300px",
-//             height: "400px",
-//             background: "#fff",
-//             border: "1px solid #ddd",
-//             borderRadius: "10px",
-//             display: "flex",
-//             flexDirection: "column",
-//           }}
-//         >
-//           <div style={{ padding: "10px", background: "#111", color: "#fff" }}>
-//             Gishmaf AI Assistant
-//           </div>
-
-//           <div style={{ flex: 1, padding: "10px", overflowY: "auto" }}>
-//             {chatMessages.map((m, i) => (
-//               <div key={i} style={{ marginBottom: "10px" }}>
-//                 <b>{m.sender === "bot" ? "AI" : "You"}:</b> {m.text}
-//               </div>
-//             ))}
-//           </div>
-
-//           <div style={{ display: "flex" }}>
-//             <input
-//               value={chatInput}
-//               onChange={(e) => setChatInput(e.target.value)}
-//               style={{ flex: 1, padding: "8px" }}
-//               placeholder="Ask something..."
-//             />
-//             <button onClick={sendChat}>Send</button>
-//           </div>
-
-//           {/* CONTACT SUPPORT */}
-//           <div style={{ padding: "10px", fontSize: "12px" }}>
-//             Need human help?  
-//             <br />
-//             <a href="https://wa.me/19378072552" target="_blank">
-//               WhatsApp Support
-//             </a>
-//             <br />
-//             <a href="mailto:gishmafglobal@gmail.com">
-//               Email Support
-//             </a>
-//           </div>
-//         </div>
-//       )}
-//     </div>
-//   );
-// }
-
-
 import { useEffect, useState } from "react";
 
 const API = "https://gishmaf-website-1.onrender.com";
@@ -244,11 +5,10 @@ const API = "https://gishmaf-website-1.onrender.com";
 export default function Comments() {
   const [comments, setComments] = useState([]);
   const [form, setForm] = useState({ name: "", email: "", message: "" });
-  const [loading, setLoading] = useState(false);
   const [replyBox, setReplyBox] = useState({});
   const [replyText, setReplyText] = useState({});
 
-  // ✅ MASK EMAIL (better version)
+  // ✅ MASK EMAIL
   const maskEmail = (email) => {
     if (!email) return "";
     const [name, domain] = email.split("@");
@@ -257,9 +17,13 @@ export default function Comments() {
 
   // ✅ LOAD COMMENTS
   const loadComments = async () => {
-    const res = await fetch(`${API}/api/comments`);
-    const data = await res.json();
-    setComments(data);
+    try {
+      const res = await fetch(`${API}/api/comments`);
+      const data = await res.json();
+      setComments(data);
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   useEffect(() => {
@@ -269,6 +33,8 @@ export default function Comments() {
   // ✅ POST COMMENT
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!form.name || !form.email || !form.message) return;
 
     await fetch(`${API}/api/comments`, {
       method: "POST",
@@ -280,7 +46,7 @@ export default function Comments() {
     loadComments();
   };
 
-  // ✅ LIKE COMMENT
+  // ✅ LIKE
   const likeComment = async (id) => {
     await fetch(`${API}/api/comments/${id}/like`, { method: "PUT" });
     loadComments();
@@ -288,11 +54,11 @@ export default function Comments() {
 
   // ✅ REPLY
   const sendReply = async (parentId) => {
+    if (!replyText[parentId]) return;
+
     await fetch(`${API}/api/comments/reply`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         parentId,
         message: replyText[parentId],
@@ -306,10 +72,12 @@ export default function Comments() {
 
   return (
     <div style={{ maxWidth: "700px", margin: "auto", padding: "20px" }}>
-      <h2 style={{ textAlign: "center" }}>💬 Community</h2>
+      <h2 style={{ textAlign: "center", marginBottom: "20px" }}>
+        💬 Community Comments
+      </h2>
 
       {/* FORM */}
-      <form onSubmit={handleSubmit} style={{ marginBottom: "20px" }}>
+      <form onSubmit={handleSubmit} style={{ marginBottom: "30px" }}>
         <input
           placeholder="Name"
           value={form.name}
@@ -328,21 +96,28 @@ export default function Comments() {
           onChange={(e) => setForm({ ...form, message: e.target.value })}
           style={inputStyle}
         />
-        <button style={btnStyle}>Post</button>
+        <button style={btnStyle}>Post Comment</button>
       </form>
 
       {/* COMMENTS */}
       {comments.map((c) => (
-        <div key={c._id} style={card}>
-          <b>{c.name}</b>{" "}
-          <span style={{ color: "#888" }}>({maskEmail(c.email)})</span>
+        <div key={c._id} style={cardStyle}>
+          <div style={{ marginBottom: "8px" }}>
+            <strong>{c.name}</strong>{" "}
+            <span style={{ color: "#777", fontSize: "13px" }}>
+              ({maskEmail(c.email)})
+            </span>
+          </div>
 
-          <p>{c.message}</p>
+          <p style={{ marginBottom: "10px" }}>{c.message}</p>
 
-          <div style={{ display: "flex", gap: "10px" }}>
-            <button onClick={() => likeComment(c._id)}>👍 {c.likes || 0}</button>
+          <div style={{ display: "flex", gap: "15px" }}>
+            <button style={actionBtn} onClick={() => likeComment(c._id)}>
+              👍 {c.likes || 0}
+            </button>
 
             <button
+              style={actionBtn}
               onClick={() =>
                 setReplyBox({ ...replyBox, [c._id]: !replyBox[c._id] })
               }
@@ -351,7 +126,7 @@ export default function Comments() {
             </button>
           </div>
 
-          {/* REPLY BOX */}
+          {/* REPLY INPUT */}
           {replyBox[c._id] && (
             <div style={{ marginTop: "10px" }}>
               <input
@@ -362,8 +137,11 @@ export default function Comments() {
                 }
                 style={inputStyle}
               />
-              <button onClick={() => sendReply(c._id)} style={btnStyle}>
-                Send
+              <button
+                style={{ ...btnStyle, marginTop: "5px" }}
+                onClick={() => sendReply(c._id)}
+              >
+                Send Reply
               </button>
             </div>
           )}
@@ -371,8 +149,12 @@ export default function Comments() {
           {/* REPLIES */}
           {c.replies?.map((r, i) => (
             <div key={i} style={replyStyle}>
-              <b>Anonymous</b>
-              <p>{r.message}</p>
+              <div style={{ fontWeight: "bold", marginBottom: "4px" }}>
+                Anonymous
+              </div>
+              <div style={{ fontSize: "14px", color: "#333" }}>
+                {r.message}
+              </div>
             </div>
           ))}
         </div>
@@ -381,35 +163,50 @@ export default function Comments() {
   );
 }
 
+// --------------------
 // 🎨 STYLES
+// --------------------
+
 const inputStyle = {
   width: "100%",
   padding: "10px",
   marginBottom: "10px",
   borderRadius: "8px",
-  border: "1px solid #ddd",
+  border: "1px solid #ccc",
+  fontSize: "14px",
 };
 
 const btnStyle = {
-  padding: "10px",
-  borderRadius: "8px",
+  padding: "10px 15px",
+  borderRadius: "6px",
   background: "#111",
   color: "#fff",
   border: "none",
+  cursor: "pointer",
 };
 
-const card = {
-  border: "1px solid #eee",
+const actionBtn = {
+  background: "none",
+  border: "none",
+  color: "#1a73e8",
+  cursor: "pointer",
+  fontSize: "14px",
+};
+
+const cardStyle = {
+  border: "1px solid #e6e6e6",
   padding: "15px",
   borderRadius: "10px",
-  marginBottom: "15px",
-  boxShadow: "0 2px 5px rgba(0,0,0,0.05)",
+  marginBottom: "20px",
+  background: "#ffffff",
+  boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
 };
 
 const replyStyle = {
-  marginLeft: "20px",
-  marginTop: "10px",
-  padding: "10px",
-  background: "#f9f9f9",
+  marginTop: "12px",
+  marginLeft: "25px",
+  padding: "12px",
+  background: "#eef3ff",  // 👈 better visible background
+  borderLeft: "4px solid #1a73e8",  // 👈 visual reply indicator
   borderRadius: "8px",
 };
