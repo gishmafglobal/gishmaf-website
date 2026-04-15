@@ -270,4 +270,3 @@ const input = {
   borderRadius: "8px",
   border: "1px solid #ccc",
 };
-
