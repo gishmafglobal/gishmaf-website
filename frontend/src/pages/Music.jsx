@@ -1,172 +1,97 @@
 // import { useEffect, useState, useRef } from "react";
 // import logo from "../assets/logo.png";
 
-// // Chatbox Component
-// function Chatbox() {
-//   const [messages, setMessages] = useState([
-//     { sender: "bot", text: "Hi! I’m your music assistant 🎵" },
-//   ]);
-//   const [input, setInput] = useState("");
-//   const [typing, setTyping] = useState(false);
-
-//   const addMessage = (sender, text) => {
-//     setMessages((prev) => [...prev, { sender, text }]);
-//   };
-
-//   // Simulated AI typing animation
-//   const sendMessage = async () => {
-//     if (!input.trim()) return;
-//     addMessage("user", input);
-//     setInput("");
-//     setTyping(true);
-
-//     // Fake delay for progressive bubble typing
-//     let reply = `🎶 You asked: "${input}". Here's a suggestion: Try exploring Afrobeat or Jazz playlists!`;
-//     let display = "";
-//     for (let i = 0; i < reply.length; i++) {
-//       display += reply[i];
-//       setMessages((prev) => [
-//         ...prev.slice(0, prev.length - 1),
-//         { sender: "bot", text: display },
-//       ]);
-//       await new Promise((r) => setTimeout(r, 15)); // 15ms per char
-//     }
-
-//     setTyping(false);
-//   };
-
-//   return (
-//     <div
-//       style={{
-//         maxWidth: "380px",
-//         width: "90%",
-//         margin: "30px auto",
-//         background: "#fff",
-//         borderRadius: "12px",
-//         boxShadow: "0 6px 18px rgba(0,0,0,0.15)",
-//         display: "flex",
-//         flexDirection: "column",
-//         padding: "15px",
-//       }}
-//     >
-//       <div
-//         style={{
-//           flex: 1,
-//           maxHeight: "400px",
-//           overflowY: "auto",
-//           display: "flex",
-//           flexDirection: "column",
-//           gap: "10px",
-//         }}
-//       >
-//         {messages.map((msg, idx) => (
-//           <div
-//             key={idx}
-//             style={{
-//               alignSelf: msg.sender === "user" ? "flex-end" : "flex-start",
-//               background: msg.sender === "user" ? "#4285f4" : "#e0e0e0",
-//               color: msg.sender === "user" ? "#fff" : "#000",
-//               padding: "8px 12px",
-//               borderRadius: "20px",
-//               maxWidth: "80%",
-//               wordBreak: "break-word",
-//             }}
-//           >
-//             {msg.text}
-//           </div>
-//         ))}
-//         {typing && <div style={{ color: "#888" }}>Typing...</div>}
-//       </div>
-//       <div style={{ display: "flex", marginTop: "10px" }}>
-//         <input
-//           type="text"
-//           placeholder="Ask me about music..."
-//           value={input}
-//           onChange={(e) => setInput(e.target.value)}
-//           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-//           style={{
-//             flex: 1,
-//             padding: "10px 15px",
-//             borderRadius: "20px",
-//             border: "1px solid #ccc",
-//             outline: "none",
-//           }}
-//         />
-//         <button
-//           onClick={sendMessage}
-//           style={{
-//             marginLeft: "8px",
-//             padding: "10px 18px",
-//             borderRadius: "20px",
-//             border: "none",
-//             background: "#4285f4",
-//             color: "#fff",
-//             cursor: "pointer",
-//             fontWeight: "bold",
-//           }}
-//         >
-//           Send
-//         </button>
-//       </div>
-//     </div>
-//   );
-// }
-
 // export default function Music() {
 //   const [songs, setSongs] = useState([]);
 //   const [term, setTerm] = useState("afrobeat");
-//   const [currentTrackIndex, setCurrentTrackIndex] = useState(null);
-//   const audioRef = useRef(null);
+//   const [currentTrack, setCurrentTrack] = useState(null);
+//   const [isPlaying, setIsPlaying] = useState(false);
 
+//   const audioRef = useRef(new Audio());
+
+//   // ---------------------------
+//   // SEARCH FUNCTION (Improved)
+//   // ---------------------------
 //   const searchMusic = async (searchTerm) => {
-//     if (!searchTerm) return;
-//     const res = await fetch(
-//       `https://itunes.apple.com/search?term=${searchTerm}&media=music&limit=20`
-//     );
-//     const data = await res.json();
-//     setSongs(data.results);
-//     setCurrentTrackIndex(null);
+//     if (!searchTerm.trim()) return;
+
+//     try {
+//       const res = await fetch(
+//         `https://itunes.apple.com/search?term=${encodeURIComponent(
+//           searchTerm
+//         )}&media=music&limit=20`
+//       );
+
+//       const data = await res.json();
+//       setSongs(data.results || []);
+//       setCurrentTrack(null);
+//       setIsPlaying(false);
+//     } catch (error) {
+//       console.error("Search failed:", error);
+//     }
 //   };
 
 //   useEffect(() => {
 //     searchMusic(term);
 //   }, []);
 
-//   const playTrack = (index) => {
-//     setCurrentTrackIndex(index);
-//     if (audioRef.current) {
-//       audioRef.current.load();
-//       audioRef.current.play();
-//     }
-//   };
+//   // ---------------------------
+//   // PLAY TRACK (Single Player)
+//   // ---------------------------
+//   const playTrack = (song) => {
+//     if (!song.previewUrl) return;
 
-//   const handleEnded = () => {
-//     if (currentTrackIndex !== null && currentTrackIndex < songs.length - 1) {
-//       playTrack(currentTrackIndex + 1);
-//     } else {
-//       // Loop current track
-//       if (audioRef.current) {
-//         audioRef.current.currentTime = 0;
-//         audioRef.current.play();
-//       }
+//     if (currentTrack?.trackId === song.trackId) {
+//       togglePlayPause();
+//       return;
 //     }
+
+//     audioRef.current.pause();
+//     audioRef.current.src = song.previewUrl;
+//     audioRef.current.load();
+
+//     audioRef.current
+//       .play()
+//       .then(() => {
+//         setCurrentTrack(song);
+//         setIsPlaying(true);
+//       })
+//       .catch((err) => console.log("Playback blocked:", err));
 //   };
 
 //   const togglePlayPause = () => {
-//     if (!audioRef.current) return;
-//     if (audioRef.current.paused) audioRef.current.play();
-//     else audioRef.current.pause();
+//     if (!audioRef.current.src) return;
+
+//     if (audioRef.current.paused) {
+//       audioRef.current.play();
+//       setIsPlaying(true);
+//     } else {
+//       audioRef.current.pause();
+//       setIsPlaying(false);
+//     }
 //   };
 
 //   const playNext = () => {
-//     if (currentTrackIndex !== null && currentTrackIndex < songs.length - 1) {
-//       playTrack(currentTrackIndex + 1);
+//     if (!currentTrack) return;
+
+//     const index = songs.findIndex(
+//       (song) => song.trackId === currentTrack.trackId
+//     );
+
+//     if (index !== -1 && index < songs.length - 1) {
+//       playTrack(songs[index + 1]);
 //     }
 //   };
 
 //   const playPrev = () => {
-//     if (currentTrackIndex !== null && currentTrackIndex > 0) {
-//       playTrack(currentTrackIndex - 1);
+//     if (!currentTrack) return;
+
+//     const index = songs.findIndex(
+//       (song) => song.trackId === currentTrack.trackId
+//     );
+
+//     if (index > 0) {
+//       playTrack(songs[index - 1]);
 //     }
 //   };
 
@@ -181,52 +106,81 @@
 //     <div
 //       style={{
 //         padding: "60px 20px",
-//         fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+//         fontFamily: "'Segoe UI', sans-serif",
 //         backgroundColor: "#fafafa",
-//         paddingBottom: "160px",
+//         paddingBottom: "120px",
 //       }}
 //     >
 //       {/* HEADER */}
-//       <div style={{ textAlign: "center", marginBottom: "40px" }}>
-//         <img src={logo} alt="logo" style={{ width: "90px", marginBottom: "15px" }} />
-//         <h1 style={{ fontSize: "2.2rem", color: "#222", marginBottom: "8px" }}>
-//           Gishmaf Music Workshop & Streaming
-//         </h1>
-//         <p style={{ color: "#555", fontSize: "1.1rem" }}>Learn music. Understand music. Stream music.</p>
+//       <div style={{ textAlign: "center", marginBottom: "30px" }}>
+//         <img src={logo} alt="logo" style={{ width: "80px" }} />
+//         <h1>Gishmaf Music Workshop & Streaming</h1>
+//         <p>Learn music. Understand music. Stream music.</p>
 //       </div>
 
-//       {/* SEARCH BAR */}
+//       {/* GENRE OVERVIEW */}
+//       <div
+//         style={{
+//           maxWidth: "800px",
+//           margin: "0 auto 40px auto",
+//           lineHeight: "1.6",
+//           fontSize: "0.95rem",
+//           color: "#444",
+//         }}
+//       >
+//         <h3>🎵 Understanding Music Genres</h3>
+//         <p>
+//           Music comes in different styles known as genres. Each genre has its
+//           own sound, rhythm and cultural background.
+//         </p>
+//         <p>
+//           <strong>Afrobeat</strong> blends African rhythms with jazz and funk.
+//           <br />
+//           <strong>Jazz</strong> focuses on improvisation and smooth
+//           instrumentals.
+//           <br />
+//           <strong>Gospel</strong> is rooted in Christian worship and powerful
+//           vocals.
+//           <br />
+//           <strong>Hip-Hop</strong> combines rap, beats and lyrical storytelling.
+//           <br />
+//           <strong>Classical</strong> uses orchestral instruments and structured
+//           compositions.
+//         </p>
+//         <p>
+//           Use the search below to explore any music genre and start streaming.
+//         </p>
+//       </div>
+
+//       {/* SEARCH */}
 //       <div style={{ textAlign: "center", marginBottom: "40px" }}>
 //         <input
 //           type="text"
-//           placeholder="Search music style e.g jazz, gospel, afrobeat"
+//           placeholder="Search genre e.g jazz, gospel, afrobeat"
 //           value={term}
 //           onChange={(e) => setTerm(e.target.value)}
-//           style={{
-//             padding: "12px 15px",
-//             width: "65%",
-//             maxWidth: "400px",
-//             borderRadius: "30px",
-//             border: "1px solid #ccc",
-//             outline: "none",
-//             fontSize: "1rem",
-//           }}
 //           onKeyDown={(e) => e.key === "Enter" && searchMusic(term)}
+//           style={{
+//             padding: "12px",
+//             width: "60%",
+//             maxWidth: "400px",
+//             borderRadius: "25px",
+//             border: "1px solid #ccc",
+//           }}
 //         />
 //         <button
 //           onClick={() => searchMusic(term)}
 //           style={{
-//             padding: "12px 25px",
+//             padding: "12px 20px",
 //             marginLeft: "10px",
-//             borderRadius: "30px",
+//             borderRadius: "25px",
 //             border: "none",
-//             background: "#4285f4",
+//             background: "#1a73e8",
 //             color: "#fff",
-//             fontWeight: "bold",
 //             cursor: "pointer",
 //           }}
 //         >
-//           Search & Stream
+//           Search
 //         </button>
 //       </div>
 
@@ -234,46 +188,40 @@
 //       <div
 //         style={{
 //           display: "grid",
-//           gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-//           gap: "25px",
-//           marginTop: "20px",
-//           padding: "0 10px",
+//           gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+//           gap: "20px",
 //         }}
 //       >
-//         {songs.map((song, index) => (
+//         {songs.map((song) => (
 //           <div
 //             key={song.trackId}
+//             onClick={() => playTrack(song)}
 //             style={{
-//               border: currentTrackIndex === index ? "2px solid #1a73e8" : "1px solid #e0e0e0",
-//               borderRadius: "12px",
+//               background: "#fff",
 //               padding: "15px",
-//               textAlign: "center",
-//               backgroundColor: "#fff",
-//               boxShadow: "0 4px 10px rgba(0,0,0,0.08)",
+//               borderRadius: "10px",
+//               boxShadow: "0 4px 8px rgba(0,0,0,0.08)",
 //               cursor: "pointer",
+//               border:
+//                 currentTrack?.trackId === song.trackId
+//                   ? "2px solid #1a73e8"
+//                   : "1px solid #eee",
 //             }}
-//             onClick={() => playTrack(index)}
 //           >
 //             <img
 //               src={song.artworkUrl100.replace("100x100bb", "300x300bb")}
 //               alt={song.trackName}
-//               style={{ width: "100%", borderRadius: "10px", marginBottom: "10px" }}
+//               style={{ width: "100%", borderRadius: "8px" }}
 //             />
-//             <h4 style={{ fontSize: "1rem", fontWeight: "600", marginBottom: "4px" }}>{song.trackName}</h4>
-//             <p style={{ fontSize: "0.9rem", color: "#666", marginBottom: "4px" }}>{song.artistName}</p>
-//             <p style={{ fontSize: "0.8rem", color: "#888", marginBottom: "6px" }}>Duration: {formatTime(song.trackTimeMillis)}</p>
-//             <audio ref={currentTrackIndex === index ? audioRef : null} style={{ display: "none" }} onEnded={handleEnded}>
-//               <source src={song.previewUrl} type="audio/mpeg" />
-//             </audio>
+//             <h4>{song.trackName}</h4>
+//             <p>{song.artistName}</p>
+//             <small>Duration: {formatTime(song.trackTimeMillis)}</small>
 //           </div>
 //         ))}
 //       </div>
 
-//       {/* CHATBOX */}
-//       <Chatbox />
-
 //       {/* NOW PLAYING BAR */}
-//       {currentTrackIndex !== null && (
+//       {currentTrack && (
 //         <div
 //           style={{
 //             position: "fixed",
@@ -282,20 +230,22 @@
 //             right: 0,
 //             background: "#1a73e8",
 //             color: "#fff",
+//             padding: "12px 20px",
 //             display: "flex",
 //             alignItems: "center",
-//             padding: "10px 20px",
-//             boxShadow: "0 -4px 10px rgba(0,0,0,0.2)",
-//             zIndex: 1000,
+//             justifyContent: "space-between",
 //           }}
 //         >
-//           <div style={{ flex: 1 }}>
-//             <strong>{songs[currentTrackIndex].trackName}</strong> – {songs[currentTrackIndex].artistName}
+//           <div>
+//             <strong>{currentTrack.trackName}</strong> –{" "}
+//             {currentTrack.artistName}
 //           </div>
-//           <div style={{ display: "flex", gap: "15px" }}>
-//             <button onClick={playPrev} style={controlBtnStyle}>⏮️</button>
-//             <button onClick={togglePlayPause} style={controlBtnStyle}>{audioRef.current && !audioRef.current.paused ? "⏸️" : "▶️"}</button>
-//             <button onClick={playNext} style={controlBtnStyle}>⏭️</button>
+//           <div>
+//             <button onClick={playPrev} style={btn}>⏮</button>
+//             <button onClick={togglePlayPause} style={btn}>
+//               {isPlaying ? "⏸" : "▶"}
+//             </button>
+//             <button onClick={playNext} style={btn}>⏭</button>
 //           </div>
 //         </div>
 //       )}
@@ -303,16 +253,14 @@
 //   );
 // }
 
-// // Button style for now playing controls
-// const controlBtnStyle = {
+// const btn = {
 //   background: "transparent",
 //   border: "none",
 //   color: "#fff",
-//   fontSize: "1.5rem",
+//   fontSize: "18px",
+//   margin: "0 10px",
 //   cursor: "pointer",
-//   outline: "none",
 // };
-
 
 
 import { useEffect, useState, useRef } from "react";
@@ -324,61 +272,48 @@ export default function Music() {
   const [currentTrack, setCurrentTrack] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
+  const [user, setUser] = useState(null);
+  const [showAuth, setShowAuth] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
+  const [authForm, setAuthForm] = useState({ email: "", password: "" });
+
   const audioRef = useRef(new Audio());
 
-  // ---------------------------
-  // SEARCH FUNCTION (Improved)
-  // ---------------------------
+  // =========================
+  // CHECK SAVED USER
+  // =========================
+  useEffect(() => {
+    const savedUser = localStorage.getItem("gishmaf_user");
+    if (savedUser) setUser(JSON.parse(savedUser));
+  }, []);
+
+  // =========================
+  // MUSIC SEARCH
+  // =========================
   const searchMusic = async (searchTerm) => {
     if (!searchTerm.trim()) return;
-
-    try {
-      const res = await fetch(
-        `https://itunes.apple.com/search?term=${encodeURIComponent(
-          searchTerm
-        )}&media=music&limit=20`
-      );
-
-      const data = await res.json();
-      setSongs(data.results || []);
-      setCurrentTrack(null);
-      setIsPlaying(false);
-    } catch (error) {
-      console.error("Search failed:", error);
-    }
+    const res = await fetch(
+      `https://itunes.apple.com/search?term=${encodeURIComponent(
+        searchTerm
+      )}&media=music&limit=20`
+    );
+    const data = await res.json();
+    setSongs(data.results || []);
   };
 
   useEffect(() => {
     searchMusic(term);
   }, []);
 
-  // ---------------------------
-  // PLAY TRACK (Single Player)
-  // ---------------------------
   const playTrack = (song) => {
-    if (!song.previewUrl) return;
-
-    if (currentTrack?.trackId === song.trackId) {
-      togglePlayPause();
-      return;
-    }
-
     audioRef.current.pause();
     audioRef.current.src = song.previewUrl;
-    audioRef.current.load();
-
-    audioRef.current
-      .play()
-      .then(() => {
-        setCurrentTrack(song);
-        setIsPlaying(true);
-      })
-      .catch((err) => console.log("Playback blocked:", err));
+    audioRef.current.play();
+    setCurrentTrack(song);
+    setIsPlaying(true);
   };
 
   const togglePlayPause = () => {
-    if (!audioRef.current.src) return;
-
     if (audioRef.current.paused) {
       audioRef.current.play();
       setIsPlaying(true);
@@ -388,181 +323,150 @@ export default function Music() {
     }
   };
 
-  const playNext = () => {
-    if (!currentTrack) return;
-
-    const index = songs.findIndex(
-      (song) => song.trackId === currentTrack.trackId
-    );
-
-    if (index !== -1 && index < songs.length - 1) {
-      playTrack(songs[index + 1]);
-    }
+  // =========================
+  // AUTH
+  // =========================
+  const handleAuth = () => {
+    if (!authForm.email || !authForm.password) return;
+    localStorage.setItem("gishmaf_user", JSON.stringify(authForm));
+    setUser(authForm);
+    setShowAuth(false);
   };
 
-  const playPrev = () => {
-    if (!currentTrack) return;
-
-    const index = songs.findIndex(
-      (song) => song.trackId === currentTrack.trackId
-    );
-
-    if (index > 0) {
-      playTrack(songs[index - 1]);
-    }
+  const logout = () => {
+    localStorage.removeItem("gishmaf_user");
+    setUser(null);
   };
 
-  const formatTime = (ms) => {
-    if (!ms) return "0:30";
-    const minutes = Math.floor(ms / 60000);
-    const seconds = Math.floor((ms % 60000) / 1000);
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
-  };
+  // =========================
+  // PUBLIC DOMAIN MOVIES
+  // =========================
+  const movies = [
+    {
+      title: "The General (1926)",
+      description: "Classic silent comedy starring Buster Keaton.",
+      embed: "https://www.youtube.com/embed/1e5R1C9bK2M",
+    },
+    {
+      title: "His Girl Friday (1940)",
+      description: "Fast-paced romantic comedy film.",
+      embed: "https://www.youtube.com/embed/3n9i6c9M2lQ",
+    },
+    {
+      title: "Santa Claus (1959)",
+      description: "Vintage family holiday film.",
+      embed: "https://www.youtube.com/embed/5kR4k2pYqXQ",
+    },
+    {
+      title: "Betty Boop Cartoon Short",
+      description: "Classic 1930s public domain animation.",
+      embed: "https://www.youtube.com/embed/6x7uQzYQ3uE",
+    },
+  ];
 
   return (
-    <div
-      style={{
-        padding: "60px 20px",
-        fontFamily: "'Segoe UI', sans-serif",
-        backgroundColor: "#fafafa",
-        paddingBottom: "120px",
-      }}
-    >
+    <div style={{ fontFamily: "Segoe UI", background: "#f4f6fb", minHeight: "100vh" }}>
+
       {/* HEADER */}
-      <div style={{ textAlign: "center", marginBottom: "30px" }}>
+      <div style={{ textAlign: "center", padding: "40px 20px" }}>
         <img src={logo} alt="logo" style={{ width: "80px" }} />
-        <h1>Gishmaf Music Workshop & Streaming</h1>
-        <p>Learn music. Understand music. Stream music.</p>
+        <h1 style={{ fontSize: "28px" }}>Gishmaf Streaming Platform</h1>
+
+        {user ? (
+          <div>
+            <span style={{ marginRight: "10px" }}>Welcome, {user.email}</span>
+            <button onClick={logout} style={btnPrimary}>Logout</button>
+          </div>
+        ) : (
+          <button onClick={() => setShowAuth(true)} style={btnPrimary}>
+            Sign In / Sign Up
+          </button>
+        )}
       </div>
 
-      {/* GENRE OVERVIEW */}
-      <div
-        style={{
-          maxWidth: "800px",
-          margin: "0 auto 40px auto",
-          lineHeight: "1.6",
-          fontSize: "0.95rem",
-          color: "#444",
-        }}
-      >
-        <h3>🎵 Understanding Music Genres</h3>
-        <p>
-          Music comes in different styles known as genres. Each genre has its
-          own sound, rhythm and cultural background.
-        </p>
-        <p>
-          <strong>Afrobeat</strong> blends African rhythms with jazz and funk.
-          <br />
-          <strong>Jazz</strong> focuses on improvisation and smooth
-          instrumentals.
-          <br />
-          <strong>Gospel</strong> is rooted in Christian worship and powerful
-          vocals.
-          <br />
-          <strong>Hip-Hop</strong> combines rap, beats and lyrical storytelling.
-          <br />
-          <strong>Classical</strong> uses orchestral instruments and structured
-          compositions.
-        </p>
-        <p>
-          Use the search below to explore any music genre and start streaming.
-        </p>
+      {/* MUSIC SECTION */}
+      <div style={{ padding: "20px 40px" }}>
+        <h2>🎵 Music Preview</h2>
+        <div style={grid}>
+          {songs.map((song) => (
+            <div key={song.trackId} style={card} onClick={() => playTrack(song)}>
+              <img
+                src={song.artworkUrl100.replace("100x100bb", "300x300bb")}
+                alt={song.trackName}
+                style={{ width: "100%", borderRadius: "10px" }}
+              />
+              <h4>{song.trackName}</h4>
+              <p style={{ color: "#555" }}>{song.artistName}</p>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* SEARCH */}
-      <div style={{ textAlign: "center", marginBottom: "40px" }}>
-        <input
-          type="text"
-          placeholder="Search genre e.g jazz, gospel, afrobeat"
-          value={term}
-          onChange={(e) => setTerm(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && searchMusic(term)}
-          style={{
-            padding: "12px",
-            width: "60%",
-            maxWidth: "400px",
-            borderRadius: "25px",
-            border: "1px solid #ccc",
-          }}
-        />
-        <button
-          onClick={() => searchMusic(term)}
-          style={{
-            padding: "12px 20px",
-            marginLeft: "10px",
-            borderRadius: "25px",
-            border: "none",
-            background: "#1a73e8",
-            color: "#fff",
-            cursor: "pointer",
-          }}
-        >
-          Search
-        </button>
+      {/* MOVIE SECTION */}
+      <div style={{ padding: "40px" }}>
+        <h2>🎬 Featured Public Domain Movies</h2>
+        <div style={grid}>
+          {movies.map((movie, i) => (
+            <div key={i} style={card}>
+              <h4>{movie.title}</h4>
+              <p style={{ fontSize: "14px", color: "#555" }}>
+                {movie.description}
+              </p>
+
+              {!user ? (
+                <div style={lockedBox}>
+                  <p>🔒 Please sign in to watch</p>
+                  <button onClick={() => setShowAuth(true)} style={btnPrimary}>
+                    Login to Watch
+                  </button>
+                </div>
+              ) : (
+                <iframe
+                  width="100%"
+                  height="200"
+                  src={movie.embed}
+                  allowFullScreen
+                  style={{ borderRadius: "10px", marginTop: "10px" }}
+                />
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* MUSIC GRID */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: "20px",
-        }}
-      >
-        {songs.map((song) => (
-          <div
-            key={song.trackId}
-            onClick={() => playTrack(song)}
-            style={{
-              background: "#fff",
-              padding: "15px",
-              borderRadius: "10px",
-              boxShadow: "0 4px 8px rgba(0,0,0,0.08)",
-              cursor: "pointer",
-              border:
-                currentTrack?.trackId === song.trackId
-                  ? "2px solid #1a73e8"
-                  : "1px solid #eee",
-            }}
-          >
-            <img
-              src={song.artworkUrl100.replace("100x100bb", "300x300bb")}
-              alt={song.trackName}
-              style={{ width: "100%", borderRadius: "8px" }}
+      {/* AUTH MODAL */}
+      {showAuth && (
+        <div style={modalOverlay}>
+          <div style={modal}>
+            <h3>{isLogin ? "Login" : "Create Account"}</h3>
+
+            <input
+              placeholder="Email"
+              onChange={(e) =>
+                setAuthForm({ ...authForm, email: e.target.value })
+              }
+              style={input}
             />
-            <h4>{song.trackName}</h4>
-            <p>{song.artistName}</p>
-            <small>Duration: {formatTime(song.trackTimeMillis)}</small>
-          </div>
-        ))}
-      </div>
 
-      {/* NOW PLAYING BAR */}
-      {currentTrack && (
-        <div
-          style={{
-            position: "fixed",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            background: "#1a73e8",
-            color: "#fff",
-            padding: "12px 20px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <div>
-            <strong>{currentTrack.trackName}</strong> –{" "}
-            {currentTrack.artistName}
-          </div>
-          <div>
-            <button onClick={playPrev} style={btn}>⏮</button>
-            <button onClick={togglePlayPause} style={btn}>
-              {isPlaying ? "⏸" : "▶"}
+            <input
+              type="password"
+              placeholder="Password"
+              onChange={(e) =>
+                setAuthForm({ ...authForm, password: e.target.value })
+              }
+              style={input}
+            />
+
+            <button onClick={handleAuth} style={btnPrimary}>
+              {isLogin ? "Login" : "Sign Up"}
             </button>
-            <button onClick={playNext} style={btn}>⏭</button>
+
+            <p
+              style={{ marginTop: "10px", cursor: "pointer", color: "#1a73e8" }}
+              onClick={() => setIsLogin(!isLogin)}
+            >
+              {isLogin ? "Create an account" : "Already have an account?"}
+            </p>
           </div>
         </div>
       )}
@@ -570,11 +474,64 @@ export default function Music() {
   );
 }
 
-const btn = {
-  background: "transparent",
-  border: "none",
+// ================== STYLES ==================
+
+const grid = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+  gap: "25px",
+  marginTop: "20px",
+};
+
+const card = {
+  background: "#fff",
+  padding: "20px",
+  borderRadius: "15px",
+  boxShadow: "0 8px 20px rgba(0,0,0,0.08)",
+  transition: "0.3s",
+};
+
+const btnPrimary = {
+  padding: "10px 18px",
+  background: "#1a73e8",
   color: "#fff",
-  fontSize: "18px",
-  margin: "0 10px",
+  border: "none",
+  borderRadius: "25px",
   cursor: "pointer",
+};
+
+const lockedBox = {
+  background: "#eee",
+  padding: "20px",
+  textAlign: "center",
+  borderRadius: "10px",
+  marginTop: "10px",
+};
+
+const modalOverlay = {
+  position: "fixed",
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  background: "rgba(0,0,0,0.5)",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+};
+
+const modal = {
+  background: "#fff",
+  padding: "30px",
+  borderRadius: "15px",
+  width: "300px",
+  textAlign: "center",
+};
+
+const input = {
+  width: "100%",
+  padding: "10px",
+  marginBottom: "10px",
+  borderRadius: "8px",
+  border: "1px solid #ccc",
 };
