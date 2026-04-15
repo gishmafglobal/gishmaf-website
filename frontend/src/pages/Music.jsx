@@ -272,17 +272,29 @@
 // };
 
 
-import { useEffect, useState, useRef } from "react";
+
+import { useEffect, useState } from "react";
 import logo from "../assets/logo.png";
 
-export default function Music() {
+export default function StreamingPage() {
   const [user, setUser] = useState(null);
   const [showAuth, setShowAuth] = useState(false);
   const [authForm, setAuthForm] = useState({ email: "", password: "" });
+  const [songs, setSongs] = useState([]);
 
+  // ================= CHECK USER =================
   useEffect(() => {
     const saved = localStorage.getItem("gishmaf_user");
     if (saved) setUser(JSON.parse(saved));
+  }, []);
+
+  // ================= MUSIC SEARCH =================
+  useEffect(() => {
+    fetch(
+      "https://itunes.apple.com/search?term=afrobeats&media=music&limit=12"
+    )
+      .then((res) => res.json())
+      .then((data) => setSongs(data.results));
   }, []);
 
   const handleAuth = () => {
@@ -292,57 +304,76 @@ export default function Music() {
     setShowAuth(false);
   };
 
+  // ================= MOVIES =================
   const movies = [
     {
       title: "Big Buck Bunny",
       poster:
         "https://peach.blender.org/wp-content/uploads/title_anouncement.jpg",
-      trailer: "https://www.youtube.com/embed/aqz-KE-bpKQ",
-      description: "Open-source animated short film."
+      trailer: "https://www.youtube.com/embed/aqz-KE-bpKQ?rel=0",
+      description:
+        "An open-source animated short film loved worldwide."
     },
     {
       title: "Sintel",
       poster:
         "https://upload.wikimedia.org/wikipedia/commons/7/75/Sintel_poster.jpg",
-      trailer: "https://www.youtube.com/embed/eRsGyueVLvQ",
-      description: "Award-winning fantasy short film."
+      trailer: "https://www.youtube.com/embed/eRsGyueVLvQ?rel=0",
+      description:
+        "A fantasy adventure short film created by Blender Foundation."
     },
     {
       title: "The General (1926)",
       poster:
         "https://upload.wikimedia.org/wikipedia/commons/3/3e/The_General_%281926%29_poster.jpg",
-      trailer: "https://www.youtube.com/embed/1e5R1C9bK2M",
-      description: "Classic silent comedy starring Buster Keaton."
-    },
-    {
-      title: "Creative Commons Music Video",
-      poster:
-        "https://images.unsplash.com/photo-1507874457470-272b3c8d8ee2",
-      trailer: "https://www.youtube.com/embed/ktvTqknDobU",
-      description: "Popular music video (official upload)."
+      trailer: "https://www.youtube.com/embed/1e5R1C9bK2M?rel=0",
+      description:
+        "Classic silent comedy starring Buster Keaton."
     }
   ];
 
   return (
     <div style={pageStyle}>
-      
       {/* HEADER */}
       <div style={header}>
         <img src={logo} alt="logo" style={{ width: 70 }} />
-        <h1 style={{ marginTop: 10 }}>Gishmaf Cinematic</h1>
-
-        {!user && (
-          <button style={primaryBtn} onClick={() => setShowAuth(true)}>
-            Sign In / Sign Up
-          </button>
-        )}
+        <h1>Gishmaf Entertainment</h1>
       </div>
 
-      {/* MOVIE SECTION */}
-      <div style={{ padding: "40px" }}>
-        <h2 style={{ marginBottom: "25px" }}>Featured Movies & Music Videos</h2>
+      {/* ================= MUSIC SECTION ================= */}
+      <section style={{ padding: "40px" }}>
+        <h2 style={sectionTitle}>🎵 Discover Music</h2>
 
-        <div style={grid}>
+        <p style={paragraph}>
+          Explore diverse music genres including <strong>Afrobeats</strong>,
+          <strong> Hip-Hop</strong>, <strong>R&B</strong>,
+          <strong> Pop</strong>, <strong>Jazz</strong>, and
+          <strong> Classical</strong>. Music connects cultures and emotions —
+          from energetic dance rhythms to soulful melodies and orchestral
+          masterpieces.
+        </p>
+
+        <div style={musicGrid}>
+          {songs.map((song) => (
+            <div key={song.trackId} style={musicCard}>
+              <img
+                src={song.artworkUrl100.replace("100x100bb", "300x300bb")}
+                alt={song.trackName}
+                style={musicImg}
+              />
+              <h4>{song.trackName}</h4>
+              <p style={{ color: "#aaa" }}>{song.artistName}</p>
+              <audio controls src={song.previewUrl} style={{ width: "100%" }} />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ================= MOVIE SECTION ================= */}
+      <section style={{ padding: "40px" }}>
+        <h2 style={sectionTitle}>🎬 Featured Movies</h2>
+
+        <div style={movieGrid}>
           {movies.map((movie, index) => (
             <MovieCard
               key={index}
@@ -352,13 +383,13 @@ export default function Music() {
             />
           ))}
         </div>
-      </div>
+      </section>
 
       {/* AUTH MODAL */}
       {showAuth && (
         <div style={modalOverlay}>
           <div style={modal}>
-            <h3>Login / Sign Up</h3>
+            <h3>Sign In / Sign Up</h3>
 
             <input
               placeholder="Email"
@@ -388,46 +419,40 @@ export default function Music() {
 }
 
 // ================= MOVIE CARD =================
-
 function MovieCard({ movie, user, setShowAuth }) {
   const [hover, setHover] = useState(false);
 
-  const handleClick = () => {
-    if (!user) {
-      setShowAuth(true);
-    }
-  };
-
   return (
     <div
-      style={card}
+      style={movieCard}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      onClick={handleClick}
+      onClick={() => !user && setShowAuth(true)}
     >
       {!hover ? (
-        <img src={movie.poster} alt={movie.title} style={poster} />
+        <img src={movie.poster} alt={movie.title} style={moviePoster} />
       ) : (
         <iframe
-          src={`${movie.trailer}?autoplay=1&mute=1`}
+          src={`${movie.trailer}&autoplay=1&mute=1`}
           title={movie.title}
-          allow="autoplay"
-          style={poster}
+          allow="autoplay; encrypted-media"
+          style={moviePoster}
         />
       )}
 
-      <div style={cardInfo}>
+      <div style={{ padding: "15px" }}>
         <h4>{movie.title}</h4>
-        <p>{movie.description}</p>
+        <p style={{ color: "#bbb", fontSize: "14px" }}>
+          {movie.description}
+        </p>
       </div>
     </div>
   );
 }
 
 // ================= STYLES =================
-
 const pageStyle = {
-  background: "#0f0f1a",
+  background: "#0d0d18",
   color: "#fff",
   minHeight: "100vh",
   fontFamily: "Segoe UI"
@@ -438,30 +463,55 @@ const header = {
   padding: "40px 20px"
 };
 
-const grid = {
+const sectionTitle = {
+  fontSize: "26px",
+  marginBottom: "15px"
+};
+
+const paragraph = {
+  color: "#bbb",
+  marginBottom: "30px",
+  maxWidth: "800px"
+};
+
+const musicGrid = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+  gap: "25px"
+};
+
+const musicCard = {
+  background: "#1a1a2b",
+  padding: "15px",
+  borderRadius: "15px"
+};
+
+const musicImg = {
+  width: "100%",
+  borderRadius: "10px",
+  marginBottom: "10px"
+};
+
+const movieGrid = {
   display: "grid",
   gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
   gap: "30px"
 };
 
-const card = {
-  background: "#1c1c2b",
+const movieCard = {
+  background: "#1a1a2b",
   borderRadius: "15px",
   overflow: "hidden",
   cursor: "pointer",
   transition: "0.3s",
-  boxShadow: "0 10px 25px rgba(0,0,0,0.4)"
+  boxShadow: "0 10px 25px rgba(0,0,0,0.5)"
 };
 
-const poster = {
+const moviePoster = {
   width: "100%",
   height: "220px",
   objectFit: "cover",
   border: "none"
-};
-
-const cardInfo = {
-  padding: "15px"
 };
 
 const primaryBtn = {
@@ -470,8 +520,7 @@ const primaryBtn = {
   border: "none",
   background: "#ff3d00",
   color: "#fff",
-  cursor: "pointer",
-  marginTop: "15px"
+  cursor: "pointer"
 };
 
 const modalOverlay = {
@@ -480,14 +529,14 @@ const modalOverlay = {
   left: 0,
   right: 0,
   bottom: 0,
-  background: "rgba(0,0,0,0.7)",
+  background: "rgba(0,0,0,0.8)",
   display: "flex",
   justifyContent: "center",
   alignItems: "center"
 };
 
 const modal = {
-  background: "#1c1c2b",
+  background: "#1a1a2b",
   padding: "30px",
   borderRadius: "15px",
   width: "320px",
