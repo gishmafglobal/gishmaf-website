@@ -272,94 +272,93 @@
 // };
 
 
-
 import { useEffect, useState } from "react";
 import logo from "../assets/logo.png";
 
-export default function StreamingPage() {
+export default function Entertainment() {
+  const [songs, setSongs] = useState([]);
   const [user, setUser] = useState(null);
   const [showAuth, setShowAuth] = useState(false);
-  const [authForm, setAuthForm] = useState({ email: "", password: "" });
-  const [songs, setSongs] = useState([]);
+  const [selectedMovie, setSelectedMovie] = useState(null);
 
-  // ================= CHECK USER =================
   useEffect(() => {
     const saved = localStorage.getItem("gishmaf_user");
     if (saved) setUser(JSON.parse(saved));
   }, []);
 
-  // ================= MUSIC SEARCH =================
+  // 🎵 Fetch Music
   useEffect(() => {
     fetch(
-      "https://itunes.apple.com/search?term=afrobeats&media=music&limit=12"
+      "https://itunes.apple.com/search?term=afrobeats&media=music&limit=8"
     )
       .then((res) => res.json())
       .then((data) => setSongs(data.results));
   }, []);
 
-  const handleAuth = () => {
-    if (!authForm.email || !authForm.password) return;
-    localStorage.setItem("gishmaf_user", JSON.stringify(authForm));
-    setUser(authForm);
-    setShowAuth(false);
-  };
-
-  // ================= MOVIES =================
   const movies = [
     {
       title: "Big Buck Bunny",
       poster:
         "https://peach.blender.org/wp-content/uploads/title_anouncement.jpg",
-      trailer: "https://www.youtube.com/embed/aqz-KE-bpKQ?rel=0",
+      trailer: "https://www.youtube.com/embed/aqz-KE-bpKQ",
       description:
-        "An open-source animated short film loved worldwide."
+        "A fun open-source animated film loved worldwide."
     },
     {
       title: "Sintel",
       poster:
         "https://upload.wikimedia.org/wikipedia/commons/7/75/Sintel_poster.jpg",
-      trailer: "https://www.youtube.com/embed/eRsGyueVLvQ?rel=0",
+      trailer: "https://www.youtube.com/embed/eRsGyueVLvQ",
       description:
-        "A fantasy adventure short film created by Blender Foundation."
+        "An epic fantasy adventure created by Blender Foundation."
     },
     {
       title: "The General (1926)",
       poster:
         "https://upload.wikimedia.org/wikipedia/commons/3/3e/The_General_%281926%29_poster.jpg",
-      trailer: "https://www.youtube.com/embed/1e5R1C9bK2M?rel=0",
+      trailer: "https://www.youtube.com/embed/1e5R1C9bK2M",
       description:
         "Classic silent comedy starring Buster Keaton."
     }
   ];
+
+  const openMovie = (movie) => {
+    if (!user) {
+      setShowAuth(true);
+    } else {
+      setSelectedMovie(movie);
+    }
+  };
 
   return (
     <div style={pageStyle}>
       {/* HEADER */}
       <div style={header}>
         <img src={logo} alt="logo" style={{ width: 70 }} />
-        <h1>Gishmaf Entertainment</h1>
+        <h1 style={{ marginTop: 10 }}>Gishmaf Entertainment</h1>
+        <p style={{ color: "#bbb" }}>
+          Stream music and discover classic films in one place.
+        </p>
       </div>
 
-      {/* ================= MUSIC SECTION ================= */}
-      <section style={{ padding: "40px" }}>
-        <h2 style={sectionTitle}>🎵 Discover Music</h2>
+      {/* ================= MUSIC ================= */}
+      <section style={section}>
+        <h2 style={title}>🎵 Discover Music</h2>
 
-        <p style={paragraph}>
-          Explore diverse music genres including <strong>Afrobeats</strong>,
-          <strong> Hip-Hop</strong>, <strong>R&B</strong>,
-          <strong> Pop</strong>, <strong>Jazz</strong>, and
-          <strong> Classical</strong>. Music connects cultures and emotions —
-          from energetic dance rhythms to soulful melodies and orchestral
-          masterpieces.
+        <p style={description}>
+          Explore genres like <strong>Afrobeats</strong>, <strong>Hip-Hop</strong>,
+          <strong> R&B</strong>, <strong>Pop</strong>, <strong>Jazz</strong>, and
+          <strong> Classical</strong>. Music connects emotions, culture, and
+          creativity across the world.
         </p>
 
-        <div style={musicGrid}>
+        <div style={grid}>
           {songs.map((song) => (
-            <div key={song.trackId} style={musicCard}>
+            <div key={song.trackId} style={card}>
               <img
-                src={song.artworkUrl100.replace("100x100bb", "300x300bb")}
+                src={song.artworkUrl100.replace("100x100bb", "400x400bb")}
                 alt={song.trackName}
-                style={musicImg}
+                style={image}
               />
               <h4>{song.trackName}</h4>
               <p style={{ color: "#aaa" }}>{song.artistName}</p>
@@ -369,46 +368,57 @@ export default function StreamingPage() {
         </div>
       </section>
 
-      {/* ================= MOVIE SECTION ================= */}
-      <section style={{ padding: "40px" }}>
-        <h2 style={sectionTitle}>🎬 Featured Movies</h2>
+      {/* ================= MOVIES ================= */}
+      <section style={section}>
+        <h2 style={title}>🎬 Featured Movies</h2>
 
-        <div style={movieGrid}>
-          {movies.map((movie, index) => (
-            <MovieCard
-              key={index}
-              movie={movie}
-              user={user}
-              setShowAuth={setShowAuth}
-            />
+        <div style={grid}>
+          {movies.map((movie, i) => (
+            <div key={i} style={movieCard} onClick={() => openMovie(movie)}>
+              <img src={movie.poster} alt={movie.title} style={image} />
+              <div style={{ padding: "15px" }}>
+                <h3>{movie.title}</h3>
+                <p style={{ color: "#bbb", fontSize: "14px" }}>
+                  {movie.description}
+                </p>
+              </div>
+            </div>
           ))}
         </div>
       </section>
 
+      {/* MOVIE PLAYER MODAL */}
+      {selectedMovie && (
+        <div style={modalOverlay} onClick={() => setSelectedMovie(null)}>
+          <div style={videoModal} onClick={(e) => e.stopPropagation()}>
+            <iframe
+              width="100%"
+              height="400"
+              src={`${selectedMovie.trailer}?autoplay=1`}
+              title={selectedMovie.title}
+              allow="autoplay; encrypted-media"
+              style={{ borderRadius: "10px" }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* AUTH MODAL */}
       {showAuth && (
         <div style={modalOverlay}>
-          <div style={modal}>
-            <h3>Sign In / Sign Up</h3>
-
-            <input
-              placeholder="Email"
-              style={input}
-              onChange={(e) =>
-                setAuthForm({ ...authForm, email: e.target.value })
-              }
-            />
-
-            <input
-              type="password"
-              placeholder="Password"
-              style={input}
-              onChange={(e) =>
-                setAuthForm({ ...authForm, password: e.target.value })
-              }
-            />
-
-            <button style={primaryBtn} onClick={handleAuth}>
+          <div style={authModal}>
+            <h3>Please Sign In</h3>
+            <button
+              style={button}
+              onClick={() => {
+                localStorage.setItem(
+                  "gishmaf_user",
+                  JSON.stringify({ demo: true })
+                );
+                setUser({ demo: true });
+                setShowAuth(false);
+              }}
+            >
               Continue
             </button>
           </div>
@@ -418,41 +428,10 @@ export default function StreamingPage() {
   );
 }
 
-// ================= MOVIE CARD =================
-function MovieCard({ movie, user, setShowAuth }) {
-  const [hover, setHover] = useState(false);
-
-  return (
-    <div
-      style={movieCard}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      onClick={() => !user && setShowAuth(true)}
-    >
-      {!hover ? (
-        <img src={movie.poster} alt={movie.title} style={moviePoster} />
-      ) : (
-        <iframe
-          src={`${movie.trailer}&autoplay=1&mute=1`}
-          title={movie.title}
-          allow="autoplay; encrypted-media"
-          style={moviePoster}
-        />
-      )}
-
-      <div style={{ padding: "15px" }}>
-        <h4>{movie.title}</h4>
-        <p style={{ color: "#bbb", fontSize: "14px" }}>
-          {movie.description}
-        </p>
-      </div>
-    </div>
-  );
-}
-
 // ================= STYLES =================
+
 const pageStyle = {
-  background: "#0d0d18",
+  background: "linear-gradient(to bottom, #0f0f1a, #1a1a2e)",
   color: "#fff",
   minHeight: "100vh",
   fontFamily: "Segoe UI"
@@ -463,64 +442,47 @@ const header = {
   padding: "40px 20px"
 };
 
-const sectionTitle = {
-  fontSize: "26px",
-  marginBottom: "15px"
+const section = {
+  padding: "40px 60px"
 };
 
-const paragraph = {
+const title = {
+  marginBottom: "15px",
+  fontSize: "28px"
+};
+
+const description = {
   color: "#bbb",
-  marginBottom: "30px",
-  maxWidth: "800px"
+  maxWidth: "800px",
+  marginBottom: "30px"
 };
 
-const musicGrid = {
+const grid = {
   display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+  gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
   gap: "25px"
 };
 
-const musicCard = {
-  background: "#1a1a2b",
+const card = {
+  background: "#1c1c2b",
   padding: "15px",
-  borderRadius: "15px"
-};
-
-const musicImg = {
-  width: "100%",
-  borderRadius: "10px",
-  marginBottom: "10px"
-};
-
-const movieGrid = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-  gap: "30px"
+  borderRadius: "15px",
+  boxShadow: "0 8px 20px rgba(0,0,0,0.4)"
 };
 
 const movieCard = {
-  background: "#1a1a2b",
+  background: "#1c1c2b",
   borderRadius: "15px",
   overflow: "hidden",
   cursor: "pointer",
-  transition: "0.3s",
-  boxShadow: "0 10px 25px rgba(0,0,0,0.5)"
+  boxShadow: "0 8px 20px rgba(0,0,0,0.4)",
+  transition: "0.3s"
 };
 
-const moviePoster = {
+const image = {
   width: "100%",
   height: "220px",
-  objectFit: "cover",
-  border: "none"
-};
-
-const primaryBtn = {
-  padding: "10px 20px",
-  borderRadius: "25px",
-  border: "none",
-  background: "#ff3d00",
-  color: "#fff",
-  cursor: "pointer"
+  objectFit: "cover"
 };
 
 const modalOverlay = {
@@ -529,24 +491,29 @@ const modalOverlay = {
   left: 0,
   right: 0,
   bottom: 0,
-  background: "rgba(0,0,0,0.8)",
+  background: "rgba(0,0,0,0.85)",
   display: "flex",
   justifyContent: "center",
   alignItems: "center"
 };
 
-const modal = {
-  background: "#1a1a2b",
+const videoModal = {
+  width: "80%",
+  maxWidth: "900px"
+};
+
+const authModal = {
+  background: "#1c1c2b",
   padding: "30px",
   borderRadius: "15px",
-  width: "320px",
   textAlign: "center"
 };
 
-const input = {
-  width: "100%",
-  padding: "10px",
-  marginBottom: "12px",
-  borderRadius: "8px",
-  border: "none"
+const button = {
+  padding: "10px 20px",
+  background: "#ff3d00",
+  border: "none",
+  borderRadius: "25px",
+  color: "#fff",
+  cursor: "pointer"
 };
