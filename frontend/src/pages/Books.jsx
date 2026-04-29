@@ -31,6 +31,14 @@ const FAKE_REVIEWS = {
     { email: "youjin@qq.com", rating: 5, comment: "Highly recommendable!" },
     { email: "joy@gmail.com", rating: 5, comment: "Really nice book!" },
   ],
+
+  book3: [
+    
+    { email: "dola@yahoo.com", rating: 5, comment: "This is lovely,still reading and loving the flow" },
+    { email: "djmanny@gmail.com", rating: 3, comment: "This is like a wow for me honestly" },
+    { email: "anny@doha.com", rating: 5, comment: "I love this concept!" },
+    
+  ],
 };
 
 export default function Books() {
@@ -42,6 +50,7 @@ export default function Books() {
   const books = [
     { id: "book1", title: "Escape from the Street", image: "/images/book1.jpg" },
     { id: "book2", title: "A Lonely Life Survivor", image: "/images/book2.jpg" },
+    { id: "book3", title: "The Diasporal Love Story(Complete Season 1)", image: "/images/book3.png" },
   ];
 
   // ========================================
