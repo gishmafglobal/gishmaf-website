@@ -1,45 +1,49 @@
-import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useEffect, useState } from "react";
 
-const API_URL = "https://gishmaf-website-1.onrender.com";
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function BookSuccess() {
-  const [searchParams] = useSearchParams();
-  const [downloadUrl, setDownloadUrl] = useState(null);
+  const [downloadUrl, setDownloadUrl] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const sessionId = searchParams.get("session_id");
-    if (!sessionId) return;
+    const params = new URLSearchParams(window.location.search);
+    const session_id = params.get("session_id");
 
-    fetch(`${API_URL}/api/books/verify-session?session_id=${sessionId}`)
+    if (!session_id) return;
+
+    fetch(`${API_URL}/api/books/verify-session?session_id=${session_id}`)
       .then((res) => res.json())
       .then((data) => {
-        if (data.downloadUrl) {
-          setDownloadUrl(data.downloadUrl);
-
-          // Auto-download
-          const link = document.createElement("a");
-          link.href = data.downloadUrl;
-          link.target = "_blank";
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-        } else {
-          alert("Payment verification failed");
-        }
+        setDownloadUrl(data.downloadUrl);
+        setLoading(false);
       })
-      .catch((err) => {
-        console.error(err);
-        alert("Payment verification failed");
-      });
-  }, [searchParams]);
+      .catch(() => setLoading(false));
+  }, []);
 
   return (
-    <div style={{ textAlign: "center", marginTop: 80 }}>
-      {downloadUrl ? (
-        <h2>🎉 Your book is downloading...</h2>
+    <div style={{ textAlign: "center", padding: "80px" }}>
+      <h1>✅ Payment Successful</h1>
+
+      {loading ? (
+        <p>Verifying payment...</p>
+      ) : downloadUrl ? (
+        <a
+          href={downloadUrl}
+          style={{
+            display: "inline-block",
+            padding: "15px 25px",
+            background: "#111",
+            color: "#fff",
+            borderRadius: "10px",
+            textDecoration: "none",
+            marginTop: "20px",
+          }}
+        >
+          📥 Download Your Book
+        </a>
       ) : (
-        <h2>Verifying payment...</h2>
+        <p>❌ Unable to verify payment</p>
       )}
     </div>
   );

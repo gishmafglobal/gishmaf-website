@@ -41,6 +41,18 @@ const FAKE_REVIEWS = {
   ],
 };
 
+// real review 
+const fetchRealReviews = async (bookId) => {
+  try {
+    const res = await fetch(`${API_URL}/api/books/reviews/${bookId}`);
+    const data = await res.json();
+    return data || [];
+  } catch (err) {
+    console.error("Failed to fetch real reviews:", err);
+    return [];
+  }
+};
+
 export default function Books() {
   const [email, setEmail] = useState(localStorage.getItem("email") || "");
   const [loadingBook, setLoadingBook] = useState(null);
@@ -117,29 +129,94 @@ export default function Books() {
   // ========================================
   // LOAD REVIEWS
   // ========================================
-  useEffect(() => {
-    const r = {};
-    const avg = {};
+ useEffect(() => {
+  const loadAllReviews = async () => {
+    const combined = {};
+    const ratingData = {};
 
-    for (const b of books) {
-      r[b.id] = FAKE_REVIEWS[b.id] || [];
+    for (const book of books) {
+      const fake = FAKE_REVIEWS[book.id] || [];
+      const real = await fetchRealReviews(book.id);
 
-      const list = r[b.id];
-      avg[b.id] =
-        list.length > 0
-          ? {
-              average: (
-                list.reduce((acc, r) => acc + r.rating, 0) / list.length
-              ).toFixed(1),
-              count: list.length,
-            }
-          : { average: "0.0", count: 0 };
+      // ✅ Merge both
+      const allReviews = [...fake, ...real];
+
+      combined[book.id] = allReviews;
+
+      // ✅ Calculate ratings
+      if (allReviews.length > 0) {
+        const avg =
+          allReviews.reduce((acc, r) => acc + Number(r.rating), 0) /
+          allReviews.length;
+
+        ratingData[book.id] = {
+          average: avg.toFixed(1),
+          count: allReviews.length,
+        };
+      } else {
+        ratingData[book.id] = { average: "0.0", count: 0 };
+      }
     }
 
-    setReviews(r);
-    setRatings(avg);
-  }, []);
+    setReviews(combined);
+    setRatings(ratingData);
+  };
 
+  loadAllReviews();
+}, []);
+
+// alowing users to add their reviews 
+const submitReview = async (bookId, rating, comment) => {
+  if (!rating || !comment) {
+    alert("Please add rating and comment");
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_URL}/api/books/review`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, bookId, rating, comment }),
+    });
+
+    const data = await res.json();
+
+    if (data.error) {
+      alert(data.error);
+      return;
+    }
+
+    alert("✅ Review added!");
+
+    // ✅ REFRESH REVIEWS CLEANLY
+    const real = await fetchRealReviews(bookId);
+
+    const allReviews = [...FAKE_REVIEWS[bookId], ...real];
+
+setReviews((prev) => ({
+  ...prev,
+  [bookId]: allReviews,
+}));
+
+// ✅ update rating instantly
+const avg =
+  allReviews.reduce((acc, r) => acc + Number(r.rating), 0) /
+  allReviews.length;
+
+setRatings((prev) => ({
+  ...prev,
+  [bookId]: {
+    average: avg.toFixed(1),
+    count: allReviews.length,
+  },
+}));
+
+  } catch (err) {
+    console.error(err);
+  }
+};
   // ========================================
   // UI
   // ========================================
@@ -249,6 +326,76 @@ export default function Books() {
             <h4 style={{ fontSize: "18px", fontWeight: "600" }}>
               Reviews
             </h4>
+
+            {/* REVIEW INPUT */}
+            {email && (
+<div style={{ marginTop: "15px" }}>
+  <select
+    onChange={(e) =>
+      setRatings((prev) => ({
+        ...prev,
+        [book.id]: {
+          ...prev[book.id],
+          userRating: e.target.value,
+        },
+      }))
+    }
+    style={{
+      width: "100%",
+      padding: "10px",
+      borderRadius: "8px",
+      marginBottom: "10px",
+    }}
+  >
+    <option value="">Rate this book</option>
+    <option value="5">⭐ 5 - Excellent</option>
+    <option value="4">⭐ 4 - Good</option>
+    <option value="3">⭐ 3 - Average</option>
+    <option value="2">⭐ 2 - Poor</option>
+    <option value="1">⭐ 1 - Bad</option>
+  </select>
+
+  <textarea
+    placeholder="Write your review..."
+    onChange={(e) =>
+      setRatings((prev) => ({
+        ...prev,
+        [book.id]: {
+          ...prev[book.id],
+          userComment: e.target.value,
+        },
+      }))
+    }
+    style={{
+      width: "100%",
+      padding: "10px",
+      borderRadius: "8px",
+      marginBottom: "10px",
+    }}
+  />
+
+  <button
+    onClick={() =>
+      submitReview(
+        book.id,
+        ratings[book.id]?.userRating,
+        ratings[book.id]?.userComment
+      )
+    }
+    style={{
+      width: "100%",
+      padding: "10px",
+      borderRadius: "8px",
+      background: "#1a73e8",
+      color: "#fff",
+      border: "none",
+      cursor: "pointer",
+    }}
+  >
+    Submit Review
+  </button>
+</div>
+)}
 
             {(reviews[book.id] || []).map((r, index) => (
               <div

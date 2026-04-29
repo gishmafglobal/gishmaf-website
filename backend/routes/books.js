@@ -14,7 +14,7 @@ const Review = require("../models/Review");
 const prices = {
   book1: 400, // $4.0.00
   book2: 420, // $4.2.00
-  book2: 530, // $5.3.00
+  book3: 530, // $5.3.00
 };
 
 // =========================
