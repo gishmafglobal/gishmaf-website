@@ -27,7 +27,7 @@
 // }
 
 
-```jsx
+
 import { Link } from "react-router-dom";
 import logo from "../assets/logo.png";
 
@@ -142,4 +142,3 @@ const linkStyle = {
   fontSize: "15px",
   fontWeight: "500",
 };
-```
