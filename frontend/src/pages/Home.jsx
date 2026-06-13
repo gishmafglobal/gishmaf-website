@@ -69,84 +69,102 @@
 
 
 
-import { useEffect } from "react";
-import Hero from "../components/Hero";
+import { useEffect, useState } from "react";
+import HeroVideo from "../assets/hero.mp4"; // 👈 add your video here
 import CardGrid from "../components/CardGrid";
 
 export default function Home() {
+  const [darkMode, setDarkMode] = useState(true);
+  const [scrollY, setScrollY] = useState(0);
+
+  /* ================= PARALLAX + ANALYTICS ================= */
   useEffect(() => {
-    const elements = document.querySelectorAll(".reveal");
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener("scroll", handleScroll);
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("active");
-          }
-        });
-      },
-      { threshold: 0.15 }
-    );
+    // 📊 SIMPLE ANALYTICS TRACKING (you can replace with Google Analytics later)
+    console.log("Page Viewed: Home");
 
-    elements.forEach((el) => observer.observe(el));
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
-    <>
-      <Hero />
+    <div style={darkMode ? styles.darkApp : styles.lightApp}>
+
+      {/* ================= THEME TOGGLE ================= */}
+      <button
+        onClick={() => setDarkMode(!darkMode)}
+        style={styles.toggleBtn}
+      >
+        {darkMode ? "☀ Light Mode" : "🌙 Dark Mode"}
+      </button>
+
+      {/* ================= HERO (VIDEO + PARALLAX) ================= */}
+      <section style={styles.heroSection}>
+        <video autoPlay muted loop playsInline style={styles.videoBg}>
+          <source src={HeroVideo} type="video/mp4" />
+        </video>
+
+        <div
+          style={{
+            ...styles.heroOverlay,
+            transform: `translateY(${scrollY * 0.3}px)`,
+          }}
+        />
+
+        <div style={styles.heroContent}>
+          <h1 style={styles.heroTitle}>
+            Gishmaf Global Concept
+          </h1>
+
+          <p style={styles.heroText}>
+            Empowering minds through knowledge, innovation, and real-world skills.
+          </p>
+
+          <a href="/contact" style={styles.heroBtn}>
+            🚀 Start Your Journey
+          </a>
+        </div>
+      </section>
 
       {/* ================= INTRO ================= */}
-      <section className="section reveal">
+      <section style={styles.section}>
         <div style={styles.container}>
-          <span style={styles.badge}>Welcome</span>
-
-          <h2 style={styles.gradientText}>
-            Gishmaf Global Concept
-          </h2>
+          <h2 style={styles.gradientTitle}>Who We Are</h2>
 
           <p style={styles.text}>
-            A modern digital platform dedicated to empowering individuals through knowledge,
-            innovation, and creativity.
+            Gishmaf Global Concept is a modern digital platform focused on empowering individuals
+            with knowledge, skills, and opportunities that create real transformation.
           </p>
 
           <p style={styles.text}>
-            We provide access to books, skill development tools, and consultancy services
-            designed to support personal and professional growth.
-          </p>
-
-          <p style={styles.text}>
-            Whether you're a student, entrepreneur, or lifelong learner — we help you grow.
+            We provide structured learning, professional resources, and consultancy support
+            for students, entrepreneurs, and professionals worldwide.
           </p>
         </div>
       </section>
 
       {/* ================= CARDS ================= */}
-      <section className="section reveal" style={styles.lightSection}>
+      <section style={styles.sectionAlt}>
         <div style={styles.container}>
-          <h2 style={styles.title}>Explore Powerful Resources</h2>
+          <h2 style={styles.sectionTitle}>Explore Our Resources</h2>
           <CardGrid />
         </div>
       </section>
 
-      {/* ================= VALUE SECTION ================= */}
-      <section className="section reveal" style={styles.darkSection}>
+      {/* ================= VALUE ================= */}
+      <section style={styles.darkSection}>
         <div style={styles.container}>
-          <span style={styles.badgeDark}>Why Choose Us</span>
-
-          <h2 style={styles.gradientTextGold}>
-            What Makes Us Different?
-          </h2>
-
-          <p style={styles.textLight}>
-            We focus on practical learning that creates real-world impact.
-          </p>
+          <h2 style={styles.gradientGold}>Why Choose Us</h2>
 
           <div style={styles.grid}>
             {[
-              "✔ Practical and actionable learning",
-              "✔ Transformational digital books",
-              "✔ Real-world skill development",
-              "✔ Supportive learning community",
+              "✔ Practical real-world learning",
+              "✔ Career-focused digital resources",
+              "✔ Business & personal growth tools",
+              "✔ Long-term skill development system",
+              "✔ Global mindset community",
+              "✔ Expert-guided learning path",
             ].map((item, i) => (
               <div key={i} style={styles.card}>
                 {item}
@@ -157,27 +175,27 @@ export default function Home() {
       </section>
 
       {/* ================= TESTIMONIALS ================= */}
-      <section className="section reveal">
+      <section style={styles.section}>
         <div style={styles.container}>
-          <h2 style={styles.title}>What People Say</h2>
+          <h2 style={styles.sectionTitle}>What People Say</h2>
 
           <div style={styles.testimonialGrid}>
             {[
               {
                 name: "Amina K.",
-                text: "This platform completely changed how I learn and grow professionally.",
+                text: "This platform completely changed my mindset and productivity.",
               },
               {
                 name: "John M.",
-                text: "Very practical and easy to understand. The resources are top quality.",
+                text: "Very structured and practical. I finally know what to focus on.",
               },
               {
                 name: "Sarah T.",
-                text: "I gained real skills I now use in my business every day.",
+                text: "The learning approach here is extremely powerful and clear.",
               },
             ].map((t, i) => (
               <div key={i} style={styles.testimonialCard}>
-                <p style={styles.quote}>"{t.text}"</p>
+                <p style={styles.quote}>“{t.text}”</p>
                 <span style={styles.author}>— {t.name}</span>
               </div>
             ))}
@@ -185,171 +203,225 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ================= MISSION ================= */}
-      <section className="section reveal" style={styles.lightSection}>
-        <div style={styles.container}>
-          <span style={styles.badge}>Our Mission</span>
+      {/* ================= FOOTER CTA ================= */}
+      <section style={styles.ctaSection}>
+        <h2 style={styles.ctaTitle}>Ready to Transform Your Future?</h2>
+        <p style={styles.ctaText}>
+          Join thousands of learners building real skills and real success.
+        </p>
 
-          <h2 style={styles.title}>We Empower Growth</h2>
-
-          <p style={styles.text}>
-            Our mission is to educate, inspire, and empower individuals through access to knowledge
-            and opportunities that transform lives.
-          </p>
-        </div>
+        <a href="/contact" style={styles.ctaBtn}>
+          Get Started Now
+        </a>
       </section>
-
-      {/* FLOATING CTA BUTTON */}
-      <a href="/contact" style={styles.floatingBtn}>
-        🚀 Start Now
-      </a>
-
-      {/* ANIMATION CSS */}
-      <style>{`
-        .section {
-          padding: 80px 20px;
-          max-width: 1100px;
-          margin: auto;
-        }
-
-        .reveal {
-          opacity: 0;
-          transform: translateY(40px);
-          transition: all 0.8s ease;
-        }
-
-        .reveal.active {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      `}</style>
-    </>
+    </div>
   );
 }
 
-/* ================= INLINE STYLES ================= */
+/* ================= STYLES ================= */
 
 const styles = {
-  container: {
-    maxWidth: "1000px",
-    margin: "auto",
-  },
-
-  lightSection: {
-    background: "#f8fafc",
-  },
-
-  darkSection: {
-    background: "linear-gradient(135deg, #0f172a, #111827)",
+  /* APP THEMES */
+  darkApp: {
+    background: "#0b1220",
     color: "#fff",
   },
 
-  badge: {
-    background: "#f5b942",
-    padding: "5px 12px",
-    borderRadius: "20px",
-    fontSize: "12px",
-    fontWeight: "bold",
-  },
-
-  badgeDark: {
-    background: "#f5b942",
-    padding: "5px 12px",
-    borderRadius: "20px",
-    fontSize: "12px",
-    fontWeight: "bold",
-    color: "#000",
-  },
-
-  title: {
-    fontSize: "28px",
-    marginTop: "10px",
-    marginBottom: "20px",
+  lightApp: {
+    background: "#f8fafc",
     color: "#0f172a",
   },
 
-  text: {
-    fontSize: "15px",
-    lineHeight: "1.8",
-    color: "#334155",
+  /* TOGGLE */
+  toggleBtn: {
+    position: "fixed",
+    top: "15px",
+    right: "15px",
+    zIndex: 999,
+    padding: "10px 14px",
+    borderRadius: "30px",
+    border: "none",
+    cursor: "pointer",
+    background: "#f5b942",
+    fontWeight: "bold",
   },
 
-  textLight: {
-    fontSize: "15px",
-    lineHeight: "1.8",
-    color: "#cbd5e1",
+  /* HERO */
+  heroSection: {
+    position: "relative",
+    height: "90vh",
+    overflow: "hidden",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
-  /* 🌈 GRADIENT TEXT */
-  gradientText: {
+  videoBg: {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    zIndex: 1,
+  },
+
+  heroOverlay: {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+    background: "rgba(0,0,0,0.55)",
+    zIndex: 2,
+  },
+
+  heroContent: {
+    position: "relative",
+    zIndex: 3,
+    textAlign: "center",
+    maxWidth: "800px",
+    padding: "20px",
+  },
+
+  heroTitle: {
+    fontSize: "52px",
+    fontWeight: "bold",
+    marginBottom: "15px",
+    background: "linear-gradient(90deg,#f5b942,#ff6b6b,#4facfe)",
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+  },
+
+  heroText: {
+    fontSize: "18px",
+    color: "#e2e8f0",
+    marginBottom: "25px",
+    lineHeight: "1.8",
+  },
+
+  heroBtn: {
+    background: "#f5b942",
+    color: "#000",
+    padding: "14px 22px",
+    borderRadius: "40px",
+    textDecoration: "none",
+    fontWeight: "bold",
+  },
+
+  /* SECTIONS */
+  section: {
+    padding: "90px 20px",
+    maxWidth: "1100px",
+    margin: "auto",
+    lineHeight: "1.9",
+  },
+
+  sectionAlt: {
+    padding: "90px 20px",
+    background: "#f1f5f9",
+  },
+
+  darkSection: {
+    padding: "90px 20px",
+    background: "linear-gradient(135deg,#0f172a,#111827)",
+    color: "#fff",
+  },
+
+  container: {
+    maxWidth: "1100px",
+    margin: "auto",
+  },
+
+  sectionTitle: {
     fontSize: "34px",
+    marginBottom: "25px",
     fontWeight: "bold",
-    background: "linear-gradient(90deg, #f5b942, #ff6b6b, #4facfe)",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-    margin: "15px 0",
   },
 
-  gradientTextGold: {
-    fontSize: "30px",
+  gradientTitle: {
+    fontSize: "38px",
     fontWeight: "bold",
-    background: "linear-gradient(90deg, #f5b942, #fff3b0)",
+    background: "linear-gradient(90deg,#f5b942,#ff6b6b)",
     WebkitBackgroundClip: "text",
     WebkitTextFillColor: "transparent",
-    margin: "15px 0",
+    marginBottom: "20px",
   },
 
+  gradientGold: {
+    fontSize: "36px",
+    fontWeight: "bold",
+    background: "linear-gradient(90deg,#f5b942,#fff3b0)",
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    marginBottom: "30px",
+  },
+
+  text: {
+    fontSize: "17px",
+    marginBottom: "18px",
+    lineHeight: "1.9",
+  },
+
+  /* GRID */
   grid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-    gap: "15px",
-    marginTop: "20px",
+    gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))",
+    gap: "18px",
   },
 
   card: {
-    background: "rgba(255,255,255,0.05)",
-    padding: "15px",
-    borderRadius: "10px",
+    background: "rgba(255,255,255,0.08)",
+    padding: "18px",
+    borderRadius: "12px",
     border: "1px solid rgba(255,255,255,0.1)",
-    backdropFilter: "blur(10px)",
   },
 
+  /* TESTIMONIAL */
   testimonialGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+    gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))",
     gap: "20px",
   },
 
   testimonialCard: {
-    padding: "20px",
+    background: "#fff",
+    padding: "22px",
     borderRadius: "12px",
-    background: "#f1f5f9",
     border: "1px solid #e2e8f0",
   },
 
   quote: {
-    fontSize: "14px",
-    lineHeight: "1.6",
+    fontSize: "15px",
+    lineHeight: "1.8",
     marginBottom: "10px",
   },
 
   author: {
-    fontSize: "13px",
     fontWeight: "bold",
     color: "#0f172a",
   },
 
-  floatingBtn: {
-    position: "fixed",
-    bottom: "25px",
-    right: "25px",
-    background: "#f5b942",
+  /* CTA */
+  ctaSection: {
+    padding: "100px 20px",
+    textAlign: "center",
+    background: "linear-gradient(135deg,#f5b942,#ff6b6b)",
     color: "#000",
-    padding: "12px 18px",
-    borderRadius: "50px",
+  },
+
+  ctaTitle: {
+    fontSize: "36px",
+    marginBottom: "15px",
+  },
+
+  ctaText: {
+    fontSize: "18px",
+    marginBottom: "25px",
+  },
+
+  ctaBtn: {
+    background: "#000",
+    color: "#fff",
+    padding: "14px 22px",
+    borderRadius: "40px",
     textDecoration: "none",
     fontWeight: "bold",
-    boxShadow: "0 10px 25px rgba(0,0,0,0.3)",
-    zIndex: 999,
   },
 };
