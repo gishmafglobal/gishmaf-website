@@ -67,6 +67,7 @@
 //   );
 // }
 
+
 import { useEffect } from "react";
 import Hero from "../components/Hero";
 import CardGrid from "../components/CardGrid";
@@ -87,6 +88,8 @@ export default function Home() {
     );
 
     elements.forEach((el) => observer.observe(el));
+
+    return () => observer.disconnect();
   }, []);
 
   return (
@@ -94,7 +97,7 @@ export default function Home() {
       <Hero />
 
       {/* ================= INTRO ================= */}
-      <section className="section reveal">
+      <section className="section reveal" style={styles.section}>
         <div style={styles.container}>
           <span style={styles.badge}>✨ Welcome</span>
 
@@ -103,17 +106,7 @@ export default function Home() {
           </h2>
 
           <p style={styles.textDark}>
-            A modern digital platform dedicated to empowering individuals through knowledge,
-            innovation, and creativity.
-          </p>
-
-          <p style={styles.textDark}>
-            We provide access to structured learning, skill development tools, and consultancy
-            services designed for real-world success.
-          </p>
-
-          <p style={styles.textDark}>
-            Whether you're a student, entrepreneur, or lifelong learner — we help you grow.
+            A modern platform built to empower individuals through knowledge, skills, and innovation.
           </p>
         </div>
       </section>
@@ -121,12 +114,12 @@ export default function Home() {
       {/* ================= CARDS ================= */}
       <section className="section reveal" style={styles.lightSection}>
         <div style={styles.container}>
-          <h2 style={styles.titleDark}>📚 Explore Powerful Resources</h2>
+          <h2 style={styles.titleDark}>📚 Explore Resources</h2>
           <CardGrid />
         </div>
       </section>
 
-      {/* ================= VALUE SECTION ================= */}
+      {/* ================= VALUE ================= */}
       <section className="section reveal" style={styles.darkSection}>
         <div style={styles.container}>
           <span style={styles.badgeDark}>💡 Why Choose Us</span>
@@ -135,16 +128,12 @@ export default function Home() {
             What Makes Us Different?
           </h2>
 
-          <p style={styles.textLight}>
-            We focus on practical learning that creates real-world impact.
-          </p>
-
           <div style={styles.grid}>
             {[
-              "✔ Practical & actionable learning",
+              "✔ Practical learning system",
               "✔ Real-world skill development",
-              "✔ Transformational digital content",
-              "✔ Supportive global community",
+              "✔ Career-focused resources",
+              "✔ Global learning community",
             ].map((item, i) => (
               <div key={i} style={styles.card}>
                 <span style={styles.icon}>⚡</span>
@@ -156,7 +145,7 @@ export default function Home() {
       </section>
 
       {/* ================= TESTIMONIALS ================= */}
-      <section className="section reveal">
+      <section className="section reveal" style={styles.section}>
         <div style={styles.container}>
           <h2 style={styles.titleDark}>💬 What People Say</h2>
 
@@ -164,36 +153,44 @@ export default function Home() {
             {[
               {
                 name: "Amina K.",
-                text: "This platform completely changed how I learn and grow professionally.",
+                text: "Very clear and practical learning platform.",
               },
               {
                 name: "John M.",
-                text: "Very practical and easy to understand. The resources are top quality.",
+                text: "Helped me understand real-world skills faster.",
               },
               {
                 name: "Sarah T.",
-                text: "I gained real skills I now use in my business every day.",
+                text: "High-quality content and easy to follow.",
               },
             ].map((t, i) => (
               <div key={i} style={styles.testimonialCard}>
                 <p style={styles.quote}>“{t.text}”</p>
-                <span style={styles.author}>— {t.name}</span>
+                <b style={styles.author}>— {t.name}</b>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ================= MISSION ================= */}
-      <section className="section reveal" style={styles.lightSection}>
-        <div style={styles.container}>
-          <span style={styles.badge}>🎯 Our Mission</span>
+      {/* ================= FIXED MISSION (IMPORTANT PART) ================= */}
+      <section className="section reveal" style={styles.missionSection}>
+        <div style={styles.containerCenter}>
+          <span style={styles.badgeDark}>🎯 Our Mission</span>
 
-          <h2 style={styles.titleDark}>We Empower Growth</h2>
+          <h2 style={styles.missionTitle}>
+            We Empower Growth Through Knowledge
+          </h2>
 
-          <p style={styles.textDark}>
-            Our mission is to educate, inspire, and empower individuals through access to knowledge
-            and opportunities that transform lives.
+          <p style={styles.missionText}>
+            Our mission is to educate, inspire, and empower individuals by providing
+            structured access to knowledge, skills, and opportunities that create real
+            transformation in life, business, and career development.
+          </p>
+
+          <p style={styles.missionText}>
+            We believe learning should be practical, clear, and impactful — helping people
+            move from confusion to clarity and from ideas to real results.
           </p>
         </div>
       </section>
@@ -206,7 +203,7 @@ export default function Home() {
       {/* ANIMATION */}
       <style>{`
         .section {
-          padding: 95px 20px;
+          padding: 90px 20px;
           max-width: 1100px;
           margin: auto;
         }
@@ -226,7 +223,7 @@ export default function Home() {
   );
 }
 
-/* ================= INLINE STYLES ================= */
+/* ================= STYLES ================= */
 
 const styles = {
   container: {
@@ -234,10 +231,18 @@ const styles = {
     margin: "auto",
   },
 
+  containerCenter: {
+    maxWidth: "850px",
+    margin: "auto",
+    textAlign: "center",
+  },
+
+  section: {
+    background: "#ffffff",
+  },
+
   lightSection: {
     background: "#f8fafc",
-    borderTop: "1px solid #e5e7eb",
-    borderBottom: "1px solid #e5e7eb",
   },
 
   darkSection: {
@@ -245,6 +250,7 @@ const styles = {
     color: "#fff",
   },
 
+  /* ================= BADGES ================= */
   badge: {
     background: "#f5b942",
     padding: "6px 14px",
@@ -263,32 +269,27 @@ const styles = {
     color: "#000",
   },
 
-  /* STRONG TEXT (FIXED VISIBILITY ISSUE) */
+  /* ================= TEXT (FIXED VISIBILITY) ================= */
   textDark: {
     fontSize: "16.5px",
     lineHeight: "1.9",
-    color: "#1f2937", // VERY IMPORTANT FIX (dark readable text)
-    marginBottom: "14px",
+    color: "#111827",
+    marginTop: "15px",
   },
 
-  textLight: {
-    fontSize: "16px",
-    lineHeight: "1.9",
-    color: "#d1d5db",
-    marginBottom: "14px",
-  },
-
+  /* ================= TITLES ================= */
   titleDark: {
     fontSize: "30px",
     fontWeight: "700",
     color: "#0f172a",
+    marginTop: "12px",
     marginBottom: "20px",
   },
 
   gradientText: {
     fontSize: "38px",
     fontWeight: "bold",
-    background: "linear-gradient(90deg, #f5b942, #ff6b6b, #4facfe)",
+    background: "linear-gradient(90deg,#f5b942,#ff6b6b,#4facfe)",
     WebkitBackgroundClip: "text",
     WebkitTextFillColor: "transparent",
     margin: "18px 0",
@@ -297,12 +298,13 @@ const styles = {
   gradientTextGold: {
     fontSize: "34px",
     fontWeight: "bold",
-    background: "linear-gradient(90deg, #f5b942, #fff3b0)",
+    background: "linear-gradient(90deg,#f5b942,#fff3b0)",
     WebkitBackgroundClip: "text",
     WebkitTextFillColor: "transparent",
-    margin: "18px 0",
+    marginBottom: "25px",
   },
 
+  /* ================= GRID ================= */
   grid: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
@@ -310,16 +312,14 @@ const styles = {
     marginTop: "25px",
   },
 
-  /* 🔥 IMPROVED CARD */
   card: {
     background: "rgba(255,255,255,0.08)",
     padding: "18px",
     borderRadius: "14px",
     border: "1px solid rgba(255,255,255,0.15)",
-    backdropFilter: "blur(10px)",
     display: "flex",
-    alignItems: "center",
     gap: "10px",
+    alignItems: "center",
     fontSize: "15px",
   },
 
@@ -328,6 +328,7 @@ const styles = {
     color: "#f5b942",
   },
 
+  /* ================= TESTIMONIAL ================= */
   testimonialGrid: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
@@ -344,9 +345,9 @@ const styles = {
 
   quote: {
     fontSize: "15px",
-    lineHeight: "1.7",
+    lineHeight: "1.8",
     color: "#111827",
-    marginBottom: "12px",
+    marginBottom: "10px",
   },
 
   author: {
@@ -355,6 +356,29 @@ const styles = {
     color: "#374151",
   },
 
+  /* ================= FIXED MISSION SECTION (KEY FIX) ================= */
+  missionSection: {
+    background: "#0b1220", // DARK BACKGROUND FOR MAX VISIBILITY
+    padding: "100px 20px",
+    color: "#fff",
+  },
+
+  missionTitle: {
+    fontSize: "34px",
+    fontWeight: "bold",
+    marginTop: "18px",
+    marginBottom: "20px",
+    color: "#ffffff",
+  },
+
+  missionText: {
+    fontSize: "17px",
+    lineHeight: "1.9",
+    color: "#e5e7eb",
+    marginBottom: "15px",
+  },
+
+  /* ================= FLOATING BUTTON ================= */
   floatingBtn: {
     position: "fixed",
     bottom: "25px",
