@@ -12,6 +12,7 @@ import Consultancy from "./pages/Consultancy";
 import Music from "./pages/Music";
 import Contact from "./pages/Contact";
 import Comments from "./pages/Comments";
+import Privacy from "./pages/Privacy";
 
 // Payment Pages
 import Premium from "./pages/Premium";
@@ -37,6 +38,7 @@ export default function App() {
           <Route path="/music" element={<Music />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/comments" element={<Comments />} />
+          <Route path="/privacy" element={<Privacy />} />
 
           {/* ========================= */}
           {/* PAYMENT SUCCESS ROUTES   */}
